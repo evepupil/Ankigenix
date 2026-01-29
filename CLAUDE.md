@@ -247,29 +247,41 @@ src/app/api/
 
 ## 9. 开发路线图
 
-### 阶段一：地基搭建
+### 阶段一：地基搭建 ✅
 1. [x] 数据库: Neon PG + Drizzle Schema (User, 已有)
-2. [ ] 数据库: 添加 Deck, Card, Task 表
+2. [x] 数据库: 添加 Deck, Card, GenerationTask 表 (含 relations)
 3. [x] 认证: Better Auth (Google/Email)
 4. [x] UI 布局: Dashboard 侧边栏
 
-### 阶段二：核心引擎 (The Engine) - *最关键*
-1. [ ] Inngest 集成: 配置 `/api/inngest` 路由
-2. [ ] 纯文本流程: Text Input → LLM (JSON Mode) → Save to DB
-3. [ ] 前端轮询: 使用 useSWR 轮询任务状态
-4. [ ] Prompt 调试: 确保稳定输出 `[{front, back}]`
+### 阶段二：核心引擎 (The Engine) ✅
+1. [x] Inngest 集成: 配置 `/api/inngest` 路由
+2. [x] 纯文本流程: Text Input → LLM (JSON Mode) → Save to DB
+3. [x] 前端轮询 Hook: 使用 useSWR 轮询任务状态 (`useTaskStatus`)
+4. [x] Prompt 调试: 稳定输出 `[{front, back}]` (gpt-4o-mini)
+5. [x] Server Actions: `generateFlashcardsAction`, `generateFromTextAction`
 
-### 阶段三：多源输入
-1. [ ] URL 解析: 集成 Jina Reader API
-2. [ ] 文件上传: R2/S3 + pdf-parse + mammoth
-3. [ ] 视频解析: youtube-transcript
+### 阶段三：多源输入 (部分完成)
+1. [ ] URL 解析: 集成 Jina Reader API (暂缓)
+2. [x] 文件上传: R2/S3 预签名 URL + 解析器
+3. [x] 文件解析: pdf-parse (PDF), mammoth (Word), 原生 (Markdown)
+4. [ ] 视频解析: youtube-transcript (暂缓)
 
-### 阶段四：管理与导出
-1. [ ] 牌组 CRUD: 创建/编辑/删除牌组
-2. [ ] 卡片 CRUD: 增删改查卡片，支持移动到不同牌组
-3. [ ] 导出功能: .apkg 和 .md 格式
+### 阶段四：管理与导出 ✅
+1. [x] 牌组 CRUD: `getDecksAction`, `getDeckAction`, `createDeckAction`, `updateDeckAction`, `deleteDeckAction`
+2. [x] 卡片 CRUD: `addCardAction`, `updateCardAction`, `deleteCardAction`, `moveCardAction`, `addCardsAction`
+3. [x] 导出功能: `/api/export/apkg` (.apkg + TSV fallback), `/api/export/markdown` (.md)
 
-### 阶段五：商业化
+### 阶段五：前端 UI ⏳ (未实现)
+> **注意**: 后端 API 和 Server Actions 已完成，但前端页面尚未实现
+
+1. [ ] 生成页面: `/dashboard/generate` - 文本/文件输入表单，任务状态轮询展示
+2. [ ] 牌组列表: `/dashboard/decks` - 显示用户所有牌组，支持搜索/筛选
+3. [ ] 牌组详情: `/dashboard/decks/[id]` - 卡片列表，编辑/删除/导出
+4. [ ] 卡片编辑器: 正反面编辑，Markdown 预览
+5. [ ] 导出 UI: 导出格式选择，下载触发
+6. [ ] 文件上传组件: 拖拽上传，进度展示，支持 PDF/Word/Markdown
+
+### 阶段六：商业化
 1. [ ] Stripe: Checkout + Webhook
 2. [ ] 积分限制: Server Action 入口检查
 3. [ ] Redis 限流: Upstash 防止 API 滥用
