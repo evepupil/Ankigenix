@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import { boolean, integer, json, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 /**
@@ -650,3 +651,49 @@ export type SourceType = (typeof sourceTypeEnum.enumValues)[number];
 
 /** 任务状态类型 */
 export type TaskStatus = (typeof taskStatusEnum.enumValues)[number];
+
+// ============================================
+// Ankigenix 表关系定义
+// ============================================
+
+/**
+ * 牌组关系
+ * - 属于一个用户
+ * - 包含多张卡片
+ * - 可被多个生成任务关联
+ */
+export const deckRelations = relations(deck, ({ one, many }) => ({
+  user: one(user, {
+    fields: [deck.userId],
+    references: [user.id],
+  }),
+  cards: many(card),
+  generationTasks: many(generationTask),
+}));
+
+/**
+ * 卡片关系
+ * - 属于一个牌组
+ */
+export const cardRelations = relations(card, ({ one }) => ({
+  deck: one(deck, {
+    fields: [card.deckId],
+    references: [deck.id],
+  }),
+}));
+
+/**
+ * 生成任务关系
+ * - 属于一个用户
+ * - 可关联一个牌组（完成后）
+ */
+export const generationTaskRelations = relations(generationTask, ({ one }) => ({
+  user: one(user, {
+    fields: [generationTask.userId],
+    references: [user.id],
+  }),
+  deck: one(deck, {
+    fields: [generationTask.deckId],
+    references: [deck.id],
+  }),
+}));
