@@ -10,6 +10,7 @@ import {
   creditsTransaction,
 } from "@/db/schema";
 import { generateFlashcardsFromText } from "@/lib/ai/openai";
+import { parseFileFromUrl } from "@/lib/parsers";
 
 /**
  * 闪卡生成 Inngest 函数
@@ -31,7 +32,7 @@ export const generateFlashcards = inngest.createFunction(
   },
   { event: "flashcard/generate" },
   async ({ event, step }) => {
-    const { taskId, userId, sourceType, sourceContent, sourceUrl, creditsCost } =
+    const { taskId, userId, sourceType, sourceContent, sourceUrl, sourceFilename, creditsCost } =
       event.data;
 
     // Step 1: 更新任务状态为处理中
@@ -104,8 +105,11 @@ export const generateFlashcards = inngest.createFunction(
           break;
 
         case "file":
-          // TODO: 实现文件解析
-          throw new Error("File parsing not yet implemented");
+          if (!sourceUrl || !sourceFilename) {
+            throw new Error("File URL and filename are required for file source");
+          }
+          content = await parseFileFromUrl(sourceUrl, sourceFilename);
+          break;
 
         case "video":
           // TODO: 实现视频字幕提取
@@ -128,7 +132,9 @@ export const generateFlashcards = inngest.createFunction(
           ? `Text Flashcards - ${new Date().toLocaleDateString()}`
           : sourceType === "url"
             ? `URL: ${sourceUrl?.slice(0, 50)}...`
-            : `${sourceType} Flashcards`;
+            : sourceType === "file" && sourceFilename
+              ? `File: ${sourceFilename}`
+              : `${sourceType} Flashcards`;
 
       await db.insert(deck).values({
         id: deckId,

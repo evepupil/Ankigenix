@@ -23,6 +23,8 @@ export type Events = {
       sourceType: "text" | "file" | "url" | "video";
       sourceContent?: string;
       sourceUrl?: string;
+      /** 原始文件名（文件类型时用于确定解析器） */
+      sourceFilename?: string;
       creditsCost: number;
       userPlan?: "free" | "pro";
     };

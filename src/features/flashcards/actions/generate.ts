@@ -34,6 +34,8 @@ const generateFlashcardsSchema = z.object({
   sourceType: z.enum(["text", "url", "file", "video"]),
   content: z.string().optional(),
   url: z.string().url().optional(),
+  /** 文件名（文件上传时必填，用于确定解析器类型） */
+  filename: z.string().optional(),
 });
 
 /**
@@ -44,7 +46,7 @@ const generateFlashcardsSchema = z.object({
 export const generateFlashcardsAction = protectedAction
   .schema(generateFlashcardsSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { sourceType, content, url } = parsedInput;
+    const { sourceType, content, url, filename } = parsedInput;
     const userId = ctx.user.id;
 
     // 验证输入
@@ -54,6 +56,10 @@ export const generateFlashcardsAction = protectedAction
 
     if ((sourceType === "url" || sourceType === "video") && !url) {
       throw new Error("URL is required for URL/video input");
+    }
+
+    if (sourceType === "file" && (!url || !filename)) {
+      throw new Error("File URL and filename are required for file input");
     }
 
     // 检查文本长度限制（简化版，假设都是免费用户）
@@ -101,6 +107,7 @@ export const generateFlashcardsAction = protectedAction
         sourceType,
         sourceContent: content,
         sourceUrl: url,
+        sourceFilename: filename,
         creditsCost,
         userPlan: "free", // TODO: 从用户订阅信息获取
       },
