@@ -502,3 +502,151 @@ export type TicketPriority = (typeof ticketPriorityEnum.enumValues)[number];
 
 /** 工单状态类型 */
 export type TicketStatus = (typeof ticketStatusEnum.enumValues)[number];
+
+// ============================================
+// Ankigenix 闪卡系统枚举
+// ============================================
+
+/**
+ * 内容来源类型枚举
+ * - text: 用户直接输入的文本
+ * - file: 上传的文件 (PDF/Word/Markdown)
+ * - url: 网页链接
+ * - video: 视频链接 (YouTube)
+ */
+export const sourceTypeEnum = pgEnum("source_type", [
+  "text",
+  "file",
+  "url",
+  "video",
+]);
+
+/**
+ * 生成任务状态枚举
+ * - pending: 等待处理
+ * - processing: 处理中
+ * - completed: 已完成
+ * - failed: 失败
+ */
+export const taskStatusEnum = pgEnum("task_status", [
+  "pending",
+  "processing",
+  "completed",
+  "failed",
+]);
+
+// ============================================
+// 牌组表 (Deck)
+// ============================================
+/**
+ * 牌组表 - 存储用户的闪卡集合
+ *
+ * @field id - 牌组唯一标识符
+ * @field userId - 关联的用户 ID
+ * @field title - 牌组标题
+ * @field description - 牌组描述 (可选)
+ * @field sourceType - 内容来源类型 (text/file/url/video)
+ * @field sourceUrl - 来源地址 (文件URL/网页URL/视频URL，文本类型为空)
+ * @field cardCount - 卡片数量 (预计算，避免每次查询聚合)
+ * @field createdAt - 创建时间
+ * @field updatedAt - 更新时间
+ */
+export const deck = pgTable("deck", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  sourceType: sourceTypeEnum("source_type").notNull(),
+  sourceUrl: text("source_url"),
+  cardCount: integer("card_count").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ============================================
+// 卡片表 (Card)
+// ============================================
+/**
+ * 卡片表 - 存储单张闪卡内容
+ *
+ * @field id - 卡片唯一标识符
+ * @field deckId - 关联的牌组 ID
+ * @field front - 卡片正面内容 (问题/概念)
+ * @field back - 卡片背面内容 (答案/解释)
+ * @field sortIndex - 排序索引 (用于自定义卡片顺序)
+ * @field createdAt - 创建时间
+ * @field updatedAt - 更新时间
+ */
+export const card = pgTable("card", {
+  id: text("id").primaryKey(),
+  deckId: text("deck_id")
+    .notNull()
+    .references(() => deck.id, { onDelete: "cascade" }),
+  front: text("front").notNull(),
+  back: text("back").notNull(),
+  sortIndex: integer("sort_index").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ============================================
+// 生成任务表 (GenerationTask)
+// ============================================
+/**
+ * 生成任务表 - 异步任务状态跟踪
+ *
+ * 用于前端轮询任务进度，解决 Vercel 60秒超时限制
+ * 配合 Inngest 后台队列使用
+ *
+ * @field id - 任务唯一标识符
+ * @field userId - 关联的用户 ID
+ * @field deckId - 生成完成后关联的牌组 ID (可为空，任务完成后设置)
+ * @field status - 任务状态 (pending/processing/completed/failed)
+ * @field sourceType - 内容来源类型
+ * @field sourceContent - 原始输入内容 (文本类型时存储)
+ * @field sourceUrl - 来源地址 (文件/URL/视频类型时存储)
+ * @field errorMessage - 失败时的错误信息
+ * @field cardCount - 生成的卡片数量
+ * @field creditsCost - 消耗的积分数量
+ * @field createdAt - 创建时间
+ * @field startedAt - 开始处理时间
+ * @field completedAt - 完成时间
+ */
+export const generationTask = pgTable("generation_task", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  deckId: text("deck_id").references(() => deck.id, { onDelete: "set null" }),
+  status: taskStatusEnum("status").notNull().default("pending"),
+  sourceType: sourceTypeEnum("source_type").notNull(),
+  sourceContent: text("source_content"),
+  sourceUrl: text("source_url"),
+  errorMessage: text("error_message"),
+  cardCount: integer("card_count").notNull().default(0),
+  creditsCost: integer("credits_cost").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+});
+
+// ============================================
+// Ankigenix 类型导出
+// ============================================
+
+export type Deck = typeof deck.$inferSelect;
+export type NewDeck = typeof deck.$inferInsert;
+
+export type Card = typeof card.$inferSelect;
+export type NewCard = typeof card.$inferInsert;
+
+export type GenerationTask = typeof generationTask.$inferSelect;
+export type NewGenerationTask = typeof generationTask.$inferInsert;
+
+/** 内容来源类型 */
+export type SourceType = (typeof sourceTypeEnum.enumValues)[number];
+
+/** 任务状态类型 */
+export type TaskStatus = (typeof taskStatusEnum.enumValues)[number];
