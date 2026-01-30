@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { generationTask, deck, card } from "@/db/schema";
+import { card, deck, generationTask } from "@/db/schema";
 
 /**
  * 任务状态查询 API
@@ -22,15 +22,17 @@ export async function GET(
     });
 
     if (!task) {
-      return NextResponse.json(
-        { error: "Task not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
     // 如果任务完成，返回牌组和卡片信息
     let deckData = null;
-    let cards: Array<{ id: string; front: string; back: string; sortIndex: number }> = [];
+    let cards: Array<{
+      id: string;
+      front: string;
+      back: string;
+      sortIndex: number;
+    }> = [];
 
     if (task.status === "completed" && task.deckId) {
       deckData = await db.query.deck.findFirst({
@@ -54,12 +56,17 @@ export async function GET(
       id: task.id,
       status: task.status,
       sourceType: task.sourceType,
+      sourceFilename: task.sourceFilename,
       cardCount: task.cardCount,
       creditsCost: task.creditsCost,
       errorMessage: task.errorMessage,
       createdAt: task.createdAt,
       startedAt: task.startedAt,
       completedAt: task.completedAt,
+      // 大文件优化字段
+      documentOutline: task.documentOutline,
+      totalChunks: task.totalChunks,
+      completedChunks: task.completedChunks,
       deck: deckData
         ? {
             id: deckData.id,

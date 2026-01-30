@@ -13,9 +13,10 @@ import { Inngest } from "inngest";
  */
 export const inngest = new Inngest({
   id: "ankigenix",
-  name: "Ankigenix",
   // 开发模式下使用本地 Dev Server，生产使用事件密钥
-  eventKey: process.env.INNGEST_EVENT_KEY,
+  ...(process.env.INNGEST_EVENT_KEY && {
+    eventKey: process.env.INNGEST_EVENT_KEY,
+  }),
 });
 
 /**
@@ -23,6 +24,7 @@ export const inngest = new Inngest({
  * 确保类型安全的事件发送
  */
 export type Events = {
+  /** 旧版闪卡生成（兼容小文件） */
   "flashcard/generate": {
     data: {
       taskId: string;
@@ -32,6 +34,26 @@ export type Events = {
       sourceUrl?: string;
       /** 原始文件名（文件类型时用于确定解析器） */
       sourceFilename?: string;
+      creditsCost: number;
+      userPlan?: "free" | "pro";
+    };
+  };
+  /** 分析文档生成大纲（大文件优化 Phase A） */
+  "flashcard/analyze-document": {
+    data: {
+      taskId: string;
+      userId: string;
+      sourceUrl: string;
+      sourceFilename: string;
+      userPlan?: "free" | "pro";
+    };
+  };
+  /** 根据大纲选择生成闪卡（大文件优化 Phase B） */
+  "flashcard/generate-from-outline": {
+    data: {
+      taskId: string;
+      userId: string;
+      selectedChapters: number[];
       creditsCost: number;
       userPlan?: "free" | "pro";
     };

@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { generationTask } from "@/db/schema";
 import { TaskCard } from "@/features/flashcards/components/task-card";
 import type { TaskListItem } from "@/features/flashcards/actions/tasks";
+import type { DocumentOutline } from "@/lib/ai/outline";
 import { auth } from "@/lib/auth";
 
 export const metadata = {
@@ -46,12 +47,16 @@ export default async function TasksPage() {
     id: task.id,
     status: task.status as TaskListItem["status"],
     sourceType: task.sourceType as TaskListItem["sourceType"],
+    sourceFilename: task.sourceFilename,
     cardCount: task.cardCount,
     creditsCost: task.creditsCost,
     errorMessage: task.errorMessage,
     createdAt: task.createdAt,
     startedAt: task.startedAt,
     completedAt: task.completedAt,
+    documentOutline: task.documentOutline as DocumentOutline | null,
+    totalChunks: task.totalChunks,
+    completedChunks: task.completedChunks,
     deck: task.deckId
       ? {
           id: task.deckId,
@@ -62,8 +67,13 @@ export default async function TasksPage() {
 
   // 按状态分组统计
   const activeCount = taskList.filter(
-    (t) => t.status === "pending" || t.status === "processing"
+    (t) =>
+      t.status === "pending" ||
+      t.status === "analyzing" ||
+      t.status === "processing" ||
+      t.status === "generating"
   ).length;
+  // Note: outlineReadyCount included in activeCount for display purposes
   const completedCount = taskList.filter(
     (t) => t.status === "completed"
   ).length;

@@ -1,5 +1,13 @@
 import { relations } from "drizzle-orm";
-import { boolean, integer, json, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  json,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 /**
  * Better Auth 核心表 Schema
@@ -352,16 +360,20 @@ export type CreditsTransaction = typeof creditsTransaction.$inferSelect;
 export type NewCreditsTransaction = typeof creditsTransaction.$inferInsert;
 
 /** 积分账户状态类型 */
-export type CreditsBalanceStatus = (typeof creditsBalanceStatusEnum.enumValues)[number];
+export type CreditsBalanceStatus =
+  (typeof creditsBalanceStatusEnum.enumValues)[number];
 
 /** 积分批次状态类型 */
-export type CreditsBatchStatus = (typeof creditsBatchStatusEnum.enumValues)[number];
+export type CreditsBatchStatus =
+  (typeof creditsBatchStatusEnum.enumValues)[number];
 
 /** 积分批次来源类型 */
-export type CreditsBatchSource = (typeof creditsBatchSourceEnum.enumValues)[number];
+export type CreditsBatchSource =
+  (typeof creditsBatchSourceEnum.enumValues)[number];
 
 /** 积分交易类型 */
-export type CreditsTransactionType = (typeof creditsTransactionTypeEnum.enumValues)[number];
+export type CreditsTransactionType =
+  (typeof creditsTransactionTypeEnum.enumValues)[number];
 
 // ============================================
 // Newsletter 订阅表
@@ -525,13 +537,19 @@ export const sourceTypeEnum = pgEnum("source_type", [
 /**
  * 生成任务状态枚举
  * - pending: 等待处理
- * - processing: 处理中
+ * - analyzing: 正在分析文档结构（生成大纲）
+ * - outline_ready: 大纲已生成，等待用户选择章节
+ * - processing: 处理中（旧流程兼容）
+ * - generating: 正在按章节并行生成闪卡
  * - completed: 已完成
  * - failed: 失败
  */
 export const taskStatusEnum = pgEnum("task_status", [
   "pending",
+  "analyzing",
+  "outline_ready",
   "processing",
+  "generating",
   "completed",
   "failed",
 ]);
@@ -608,9 +626,15 @@ export const card = pgTable("card", {
  * @field sourceType - 内容来源类型
  * @field sourceContent - 原始输入内容 (文本类型时存储)
  * @field sourceUrl - 来源地址 (文件/URL/视频类型时存储)
+ * @field sourceFilename - 原始文件名 (文件类型时存储)
  * @field errorMessage - 失败时的错误信息
  * @field cardCount - 生成的卡片数量
  * @field creditsCost - 消耗的积分数量
+ * @field documentOutline - 文档大纲 (JSON, 大文件优化)
+ * @field documentText - 缓存的文档全文 (大文件优化)
+ * @field selectedChapters - 用户选择的章节索引 (JSON数组, 大文件优化)
+ * @field totalChunks - 总分块数 (大文件并行生成)
+ * @field completedChunks - 已完成分块数 (进度追踪)
  * @field createdAt - 创建时间
  * @field startedAt - 开始处理时间
  * @field completedAt - 完成时间
@@ -625,9 +649,16 @@ export const generationTask = pgTable("generation_task", {
   sourceType: sourceTypeEnum("source_type").notNull(),
   sourceContent: text("source_content"),
   sourceUrl: text("source_url"),
+  sourceFilename: text("source_filename"),
   errorMessage: text("error_message"),
   cardCount: integer("card_count").notNull().default(0),
   creditsCost: integer("credits_cost").notNull(),
+  // 大文件优化字段
+  documentOutline: json("document_outline"),
+  documentText: text("document_text"),
+  selectedChapters: json("selected_chapters").$type<number[]>(),
+  totalChunks: integer("total_chunks"),
+  completedChunks: integer("completed_chunks").default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),

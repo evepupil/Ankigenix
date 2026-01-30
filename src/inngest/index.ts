@@ -1,2 +1,7 @@
-export { inngest, type Events } from "./client";
-export { functions, generateFlashcards } from "./functions";
+export { type Events, inngest } from "./client";
+export {
+  analyzeDocument,
+  functions,
+  generateFlashcards,
+  generateFromOutline,
+} from "./functions";

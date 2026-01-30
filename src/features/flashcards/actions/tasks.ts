@@ -3,21 +3,39 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { deck, generationTask } from "@/db/schema";
+import type { DocumentOutline } from "@/lib/ai/outline";
 import { protectedAction } from "@/lib/safe-action";
+
+/**
+ * 任务状态类型（含大文件优化新状态）
+ */
+export type TaskStatus =
+  | "pending"
+  | "analyzing"
+  | "outline_ready"
+  | "processing"
+  | "generating"
+  | "completed"
+  | "failed";
 
 /**
  * 任务列表项类型
  */
 export interface TaskListItem {
   id: string;
-  status: "pending" | "processing" | "completed" | "failed";
+  status: TaskStatus;
   sourceType: "text" | "file" | "url" | "video";
+  sourceFilename: string | null;
   cardCount: number;
   creditsCost: number;
   errorMessage: string | null;
   createdAt: Date;
   startedAt: Date | null;
   completedAt: Date | null;
+  // 大文件优化字段
+  documentOutline: DocumentOutline | null;
+  totalChunks: number | null;
+  completedChunks: number | null;
   deck: {
     id: string;
     title: string;
@@ -58,12 +76,16 @@ export const getUserTasksAction = protectedAction.action(
       id: task.id,
       status: task.status as TaskListItem["status"],
       sourceType: task.sourceType as TaskListItem["sourceType"],
+      sourceFilename: task.sourceFilename,
       cardCount: task.cardCount,
       creditsCost: task.creditsCost,
       errorMessage: task.errorMessage,
       createdAt: task.createdAt,
       startedAt: task.startedAt,
       completedAt: task.completedAt,
+      documentOutline: task.documentOutline as DocumentOutline | null,
+      totalChunks: task.totalChunks,
+      completedChunks: task.completedChunks,
       deck: task.deckId
         ? {
             id: task.deckId,
@@ -77,7 +99,7 @@ export const getUserTasksAction = protectedAction.action(
 /**
  * 获取用户活跃任务数量
  *
- * 返回 pending + processing 状态的任务数量
+ * 返回 pending/analyzing/outline_ready/processing/generating 状态的任务数量
  * 用于侧边栏徽章显示
  */
 export const getActiveTaskCountAction = protectedAction.action(
@@ -87,7 +109,13 @@ export const getActiveTaskCountAction = protectedAction.action(
     const activeTasks = await db.query.generationTask.findMany({
       where: and(
         eq(generationTask.userId, userId),
-        inArray(generationTask.status, ["pending", "processing"])
+        inArray(generationTask.status, [
+          "pending",
+          "analyzing",
+          "outline_ready",
+          "processing",
+          "generating",
+        ])
       ),
       columns: { id: true },
     });
