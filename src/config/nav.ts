@@ -1,5 +1,6 @@
 import {
   Box,
+  ClipboardList,
   Cpu,
   Eye,
   Globe,
@@ -184,6 +185,11 @@ export const dashboardNav: NavGroup[] = [
         title: "My Decks",
         href: "/dashboard/decks",
         icon: Layers,
+      },
+      {
+        title: "Tasks",
+        href: "/dashboard/tasks",
+        icon: ClipboardList,
       },
     ],
   },

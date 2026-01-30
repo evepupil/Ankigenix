@@ -1,5 +1,13 @@
 // Actions
-export { generateFlashcardsAction, generateFromTextAction } from "./actions/generate";
+export {
+  generateFlashcardsAction,
+  generateFromTextAction,
+} from "./actions/generate";
+export {
+  getActiveTaskCountAction,
+  getUserTasksAction,
+  type TaskListItem,
+} from "./actions/tasks";
 
 // Hooks
-export { useTaskStatus, type TaskStatus } from "./hooks/use-task-status";
+export { type TaskStatus, useTaskStatus } from "./hooks/use-task-status";

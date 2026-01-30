@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  ChevronsUpDown,
-  LogOut,
-  Settings,
-} from "lucide-react";
+import { ChevronsUpDown, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { dashboardConfig, siteConfig } from "@/config";
 import { CreditBalanceBadge } from "@/features/credits/components";
 import { useSidebar } from "@/features/dashboard/context";
+import { ActiveTaskBadge } from "@/features/flashcards/components/active-task-badge";
 import { ModeToggle } from "@/features/shared/components";
 import { signOut, useSession } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
@@ -114,6 +111,7 @@ export function DashboardSidebar() {
               {group.items.map((item) => {
                 const isActive = pathname === item.href;
                 const Icon = item.icon;
+                const isTasksItem = item.href === "/dashboard/tasks";
                 return (
                   <Link
                     key={item.href}
@@ -124,11 +122,20 @@ export function DashboardSidebar() {
                       isActive
                         ? "bg-white text-foreground shadow-sm"
                         : "text-muted-foreground hover:bg-white/60 hover:text-foreground",
-                      isCollapsed && "justify-center px-0"
+                      isCollapsed && "justify-center px-0",
+                      isCollapsed && isTasksItem && "relative"
                     )}
                   >
                     {Icon && <Icon className="h-4 w-4 shrink-0" />}
-                    {!isCollapsed && item.title}
+                    {!isCollapsed && (
+                      <>
+                        <span className="flex-1">{item.title}</span>
+                        {isTasksItem && <ActiveTaskBadge />}
+                      </>
+                    )}
+                    {isCollapsed && isTasksItem && (
+                      <ActiveTaskBadge className="absolute -right-1 -top-1" />
+                    )}
                   </Link>
                 );
               })}
@@ -229,10 +236,12 @@ export function DashboardSidebar() {
           </Popover>
         ) : (
           // 加载状态
-          <div className={cn(
-            "flex items-center gap-3 rounded-md px-2 py-1.5",
-            isCollapsed && "justify-center px-0"
-          )}>
+          <div
+            className={cn(
+              "flex items-center gap-3 rounded-md px-2 py-1.5",
+              isCollapsed && "justify-center px-0"
+            )}
+          >
             <div className="h-8 w-8 animate-pulse rounded-full bg-neutral-200 shrink-0" />
             {!isCollapsed && (
               <div className="flex-1 space-y-1">
