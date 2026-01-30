@@ -36,6 +36,8 @@ const generateFlashcardsSchema = z.object({
   url: z.string().url().optional(),
   /** 文件名（文件上传时必填，用于确定解析器类型） */
   filename: z.string().optional(),
+  /** 文件在存储中的键名（文件上传时必填） */
+  fileKey: z.string().optional(),
 });
 
 /**
@@ -46,7 +48,7 @@ const generateFlashcardsSchema = z.object({
 export const generateFlashcardsAction = protectedAction
   .schema(generateFlashcardsSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { sourceType, content, url, filename } = parsedInput;
+    const { sourceType, content, url, filename, fileKey } = parsedInput;
     const userId = ctx.user.id;
 
     // 验证输入
@@ -108,6 +110,7 @@ export const generateFlashcardsAction = protectedAction
         sourceContent: content,
         sourceUrl: url,
         sourceFilename: filename,
+        fileKey,
         creditsCost,
         userPlan: "free", // TODO: 从用户订阅信息获取
       },
@@ -150,6 +153,8 @@ const analyzeDocumentSchema = z.object({
   sourceUrl: z.string().url(),
   /** 原始文件名（用于确定解析器类型） */
   sourceFilename: z.string().min(1),
+  /** 文件在存储中的键名 */
+  fileKey: z.string().min(1),
 });
 
 /**
@@ -162,7 +167,7 @@ const analyzeDocumentSchema = z.object({
 export const analyzeDocumentAction = protectedAction
   .schema(analyzeDocumentSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { sourceUrl, sourceFilename } = parsedInput;
+    const { sourceUrl, sourceFilename, fileKey } = parsedInput;
     const userId = ctx.user.id;
 
     // 创建任务记录（Phase A 免费，creditsCost = 0）
@@ -185,6 +190,7 @@ export const analyzeDocumentAction = protectedAction
         userId,
         sourceUrl,
         sourceFilename,
+        fileKey,
         userPlan: "free", // TODO: 从用户订阅信息获取
       },
     });

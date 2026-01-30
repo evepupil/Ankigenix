@@ -16,7 +16,7 @@ import {
 import { generateFlashcardsFromText } from "@/lib/ai/openai";
 import { splitIntoChunks } from "@/lib/ai/chunking";
 import { countTokens } from "@/lib/ai/tokenizer";
-import { parseFileFromUrl } from "@/lib/parsers";
+import { parseFileFromStorage } from "@/lib/parsers";
 import { inngest } from "./client";
 
 /**
@@ -46,6 +46,7 @@ export const generateFlashcards = inngest.createFunction(
       sourceContent,
       sourceUrl,
       sourceFilename,
+      fileKey,
       creditsCost,
     } = event.data;
 
@@ -122,12 +123,16 @@ export const generateFlashcards = inngest.createFunction(
         }
 
         case "file":
-          if (!sourceUrl || !sourceFilename) {
+          if (!fileKey || !sourceFilename) {
             throw new Error(
-              "File URL and filename are required for file source"
+              "File key and filename are required for file source"
             );
           }
-          content = await parseFileFromUrl(sourceUrl, sourceFilename);
+          content = await parseFileFromStorage(
+            fileKey,
+            process.env.STORAGE_BUCKET_NAME || "ankigenix-uploads",
+            sourceFilename
+          );
           break;
 
         case "video":
@@ -215,7 +220,7 @@ export const analyzeDocument = inngest.createFunction(
   },
   { event: "flashcard/analyze-document" },
   async ({ event, step }) => {
-    const { taskId, sourceUrl, sourceFilename } = event.data;
+    const { taskId, sourceFilename, fileKey } = event.data;
 
     // Step 1: 更新任务状态为分析中
     await step.run("update-task-analyzing", async () => {
@@ -230,7 +235,11 @@ export const analyzeDocument = inngest.createFunction(
 
     // Step 2: 下载并解析文件
     const documentText = await step.run("download-and-parse", async () => {
-      return await parseFileFromUrl(sourceUrl, sourceFilename);
+      return await parseFileFromStorage(
+        fileKey,
+        process.env.STORAGE_BUCKET_NAME || "ankigenix-uploads",
+        sourceFilename
+      );
     });
 
     // Step 3: 计算 token 数

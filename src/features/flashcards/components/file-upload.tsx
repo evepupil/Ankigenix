@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface FileUploadProps {
-  onUploadComplete: (fileUrl: string, filename: string) => void;
+  onUploadComplete: (fileUrl: string, filename: string, fileKey: string) => void;
   onRemove: () => void;
   disabled?: boolean;
 }
@@ -89,7 +89,7 @@ export function FileUpload({
           throw new Error(errorData.error || "Failed to get upload URL");
         }
 
-        const { presignedUrl, fileUrl } = await presignedResponse.json();
+        const { presignedUrl, fileUrl, fileKey } = await presignedResponse.json();
 
         // Upload file using XMLHttpRequest for progress tracking
         await new Promise<void>((resolve, reject) => {
@@ -123,7 +123,7 @@ export function FileUpload({
         });
 
         setUploadedUrl(fileUrl);
-        onUploadComplete(fileUrl, file.name);
+        onUploadComplete(fileUrl, file.name, fileKey);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Upload failed");
         setSelectedFile(null);

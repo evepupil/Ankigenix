@@ -28,6 +28,7 @@ type FileFlowPhase = "upload" | "analyzing" | "select" | "generating";
 interface UploadedFile {
   url: string;
   filename: string;
+  fileKey: string;
 }
 
 export function GenerateForm() {
@@ -152,6 +153,7 @@ export function GenerateForm() {
     executeAnalyze({
       sourceUrl: uploadedFile.url,
       sourceFilename: uploadedFile.filename,
+      fileKey: uploadedFile.fileKey,
     });
   }, [uploadedFile, executeAnalyze]);
 
@@ -167,8 +169,8 @@ export function GenerateForm() {
   );
 
   const handleUploadComplete = useCallback(
-    (fileUrl: string, filename: string) => {
-      setUploadedFile({ url: fileUrl, filename });
+    (fileUrl: string, filename: string, fileKey: string) => {
+      setUploadedFile({ url: fileUrl, filename, fileKey });
     },
     []
   );

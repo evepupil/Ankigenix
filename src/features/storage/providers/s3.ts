@@ -162,6 +162,40 @@ export const s3Provider: StorageProvider = {
 
     await client.send(command);
   },
+
+  /**
+   * 获取文件内容
+   *
+   * @param key - 文件键名
+   * @param bucket - 存储桶名称
+   * @returns 文件内容 Buffer
+   */
+  async getObject(key: string, bucket: string): Promise<Buffer> {
+    const client = getS3Client();
+
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    });
+
+    const response = await client.send(command);
+
+    if (!response.Body) {
+      throw new Error(`File not found: ${key}`);
+    }
+
+    // 将 ReadableStream 转换为 Buffer
+    const chunks: Uint8Array[] = [];
+    const reader = response.Body.transformToWebStream().getReader();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+
+    return Buffer.concat(chunks);
+  },
 };
 
 // ============================================

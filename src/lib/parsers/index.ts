@@ -1,6 +1,7 @@
 import { parsePdf } from "./pdf";
 import { parseWord } from "./word";
 import { parseMarkdown } from "./markdown";
+import { getStorageProvider } from "@/features/storage/providers";
 
 /**
  * 支持的文件类型
@@ -103,6 +104,33 @@ export async function parseFileFromUrl(
 
   const arrayBuffer = await response.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
+
+  return await parseFile(buffer, fileType);
+}
+
+/**
+ * 从 S3/R2 存储下载并解析文件
+ *
+ * 使用 S3 SDK 进行认证下载，解决 R2 端点需要认证的问题
+ *
+ * @param fileKey - 文件在存储中的键名 (如 uploads/user-id/xxx.pdf)
+ * @param bucket - 存储桶名称
+ * @param filename - 原始文件名（用于确定文件类型）
+ * @returns 提取的文本内容
+ */
+export async function parseFileFromStorage(
+  fileKey: string,
+  bucket: string,
+  filename: string
+): Promise<string> {
+  const fileType = getFileTypeFromName(filename);
+
+  if (!fileType) {
+    throw new Error(`Cannot determine file type from filename: ${filename}`);
+  }
+
+  const provider = getStorageProvider();
+  const buffer = await provider.getObject(fileKey, bucket);
 
   return await parseFile(buffer, fileType);
 }

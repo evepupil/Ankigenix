@@ -51,6 +51,15 @@ export interface StorageProvider {
    * @param bucket - 存储桶名称
    */
   deleteObject(key: string, bucket: string): Promise<void>;
+
+  /**
+   * 获取文件内容
+   *
+   * @param key - 文件键名 (路径)
+   * @param bucket - 存储桶名称
+   * @returns 文件内容 Buffer
+   */
+  getObject(key: string, bucket: string): Promise<Buffer>;
 }
 
 // ============================================
