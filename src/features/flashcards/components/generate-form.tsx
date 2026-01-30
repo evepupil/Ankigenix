@@ -8,15 +8,22 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { generateFlashcardsAction } from "@/features/flashcards/actions/generate";
+import {
+  analyzeDocumentAction,
+  generateFlashcardsAction,
+  generateFromOutlineAction,
+} from "@/features/flashcards/actions/generate";
+import { useTaskStatus } from "@/features/flashcards/hooks/use-task-status";
 import { cn } from "@/lib/utils";
 import { FileUpload } from "./file-upload";
+import { OutlineSelector } from "./outline-selector";
 import { TaskStatusDisplay } from "./task-status";
 
 const MAX_TEXT_LENGTH = 1000;
 const MIN_TEXT_LENGTH = 10;
 
 type InputMode = "text" | "file";
+type FileFlowPhase = "upload" | "analyzing" | "select" | "generating";
 
 interface UploadedFile {
   url: string;
@@ -28,27 +35,99 @@ export function GenerateForm() {
   const [activeTab, setActiveTab] = useState<InputMode>("text");
   const [textContent, setTextContent] = useState("");
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
-  const [taskId, setTaskId] = useState<string | null>(null);
 
-  const { execute, isPending } = useAction(generateFlashcardsAction, {
-    onSuccess: ({ data }) => {
-      if (data?.success && data.taskId) {
-        setTaskId(data.taskId);
-        toast.success("Generation started!");
-      }
-    },
-    onError: ({ error }) => {
-      if (error.serverError) {
-        toast.error(error.serverError);
-      } else if (error.validationErrors) {
-        const errors = Object.values(error.validationErrors).flat();
-        toast.error(errors.join(", ") || "Validation failed");
-      } else {
-        toast.error("Failed to start generation");
-      }
-    },
-  });
+  // Text flow state
+  const [textTaskId, setTextTaskId] = useState<string | null>(null);
 
+  // File flow state (two-phase)
+  const [fileFlowPhase, setFileFlowPhase] = useState<FileFlowPhase>("upload");
+  const [fileTaskId, setFileTaskId] = useState<string | null>(null);
+
+  // Hook for polling file task status
+  const { task: fileTask, refresh: refreshFileTask } = useTaskStatus(
+    fileTaskId,
+    { enabled: !!fileTaskId }
+  );
+
+  // Text generation action (legacy flow)
+  const { execute: executeTextGenerate, isPending: isTextPending } = useAction(
+    generateFlashcardsAction,
+    {
+      onSuccess: ({ data }) => {
+        if (data?.success && data.taskId) {
+          setTextTaskId(data.taskId);
+          toast.success("Generation started!");
+        }
+      },
+      onError: ({ error }) => {
+        handleActionError(error);
+      },
+    }
+  );
+
+  // Phase A: Analyze document
+  const { execute: executeAnalyze, isPending: isAnalyzing } = useAction(
+    analyzeDocumentAction,
+    {
+      onSuccess: ({ data }) => {
+        if (data?.success && data.taskId) {
+          setFileTaskId(data.taskId);
+          setFileFlowPhase("analyzing");
+          toast.success("Document analysis started!");
+        }
+      },
+      onError: ({ error }) => {
+        handleActionError(error);
+      },
+    }
+  );
+
+  // Phase B: Generate from outline
+  const { execute: executeFromOutline, isPending: isGeneratingFromOutline } =
+    useAction(generateFromOutlineAction, {
+      onSuccess: ({ data }) => {
+        if (data?.success) {
+          setFileFlowPhase("generating");
+          refreshFileTask();
+          toast.success(`Generation started! (${data.creditsCost} credits)`);
+        }
+      },
+      onError: ({ error }) => {
+        handleActionError(error);
+      },
+    });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function handleActionError(error: any) {
+    if (error?.serverError) {
+      toast.error(error.serverError);
+    } else if (error?.validationErrors) {
+      const extractErrors = (obj: unknown): string[] => {
+        if (!obj || typeof obj !== "object") return [];
+        const errors: string[] = [];
+        for (const value of Object.values(obj)) {
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              if (typeof item === "string") {
+                errors.push(item);
+              } else if (item && typeof item === "object" && "_errors" in item) {
+                errors.push(...(item._errors as string[]));
+              }
+            }
+          } else if (value && typeof value === "object" && "_errors" in value) {
+            errors.push(...((value as { _errors: string[] })._errors));
+          }
+        }
+        return errors;
+      };
+      const errors = extractErrors(error.validationErrors);
+      toast.error(errors.join(", ") || "Validation failed");
+    } else {
+      toast.error("An unexpected error occurred");
+    }
+  }
+
+  // Text flow handlers
   const handleTextSubmit = useCallback(() => {
     if (textContent.length < MIN_TEXT_LENGTH) {
       toast.error(`Content must be at least ${MIN_TEXT_LENGTH} characters`);
@@ -58,31 +137,34 @@ export function GenerateForm() {
       toast.error(`Content exceeds ${MAX_TEXT_LENGTH} character limit`);
       return;
     }
-    execute({
+    executeTextGenerate({
       sourceType: "text",
       content: textContent,
     });
-  }, [textContent, execute]);
+  }, [textContent, executeTextGenerate]);
 
-  const handleFileSubmit = useCallback(() => {
+  // File flow handlers
+  const handleFileAnalyze = useCallback(() => {
     if (!uploadedFile) {
       toast.error("Please upload a file first");
       return;
     }
-    execute({
-      sourceType: "file",
-      url: uploadedFile.url,
-      filename: uploadedFile.filename,
+    executeAnalyze({
+      sourceUrl: uploadedFile.url,
+      sourceFilename: uploadedFile.filename,
     });
-  }, [uploadedFile, execute]);
+  }, [uploadedFile, executeAnalyze]);
 
-  const handleSubmit = useCallback(() => {
-    if (activeTab === "text") {
-      handleTextSubmit();
-    } else {
-      handleFileSubmit();
-    }
-  }, [activeTab, handleTextSubmit, handleFileSubmit]);
+  const handleSelectChapters = useCallback(
+    (selectedChapters: number[]) => {
+      if (!fileTaskId) return;
+      executeFromOutline({
+        taskId: fileTaskId,
+        selectedChapters,
+      });
+    },
+    [fileTaskId, executeFromOutline]
+  );
 
   const handleUploadComplete = useCallback(
     (fileUrl: string, filename: string) => {
@@ -95,8 +177,14 @@ export function GenerateForm() {
     setUploadedFile(null);
   }, []);
 
-  const handleRetry = useCallback(() => {
-    setTaskId(null);
+  const handleTextRetry = useCallback(() => {
+    setTextTaskId(null);
+  }, []);
+
+  const handleFileRetry = useCallback(() => {
+    setFileTaskId(null);
+    setFileFlowPhase("upload");
+    setUploadedFile(null);
   }, []);
 
   const handleComplete = useCallback(
@@ -108,15 +196,19 @@ export function GenerateForm() {
     [router]
   );
 
+  // Handle outline ready callback
+  const handleOutlineReady = useCallback(() => {
+    setFileFlowPhase("select");
+  }, []);
+
+  // Validation
   const isTextValid =
     textContent.length >= MIN_TEXT_LENGTH &&
     textContent.length <= MAX_TEXT_LENGTH;
   const isFileValid = uploadedFile !== null;
-  const canSubmit =
-    !isPending &&
-    !taskId &&
-    ((activeTab === "text" && isTextValid) ||
-      (activeTab === "file" && isFileValid));
+  const canSubmitText = !isTextPending && !textTaskId && isTextValid;
+  const canSubmitFile =
+    !isAnalyzing && fileFlowPhase === "upload" && isFileValid;
 
   const characterCountColor = cn(
     "text-sm transition-colors",
@@ -129,17 +221,17 @@ export function GenerateForm() {
           : "text-muted-foreground"
   );
 
-  // Show task status if we have a taskId
-  if (taskId) {
+  // TEXT FLOW: Show task status if we have a taskId
+  if (activeTab === "text" && textTaskId) {
     return (
       <div className="rounded-xl border bg-card p-8">
         <TaskStatusDisplay
-          taskId={taskId}
+          taskId={textTaskId}
           onComplete={handleComplete}
-          onRetry={handleRetry}
+          onRetry={handleTextRetry}
         />
         <div className="mt-6 flex justify-center">
-          <Button variant="outline" size="lg" onClick={handleRetry}>
+          <Button variant="outline" size="lg" onClick={handleTextRetry}>
             Generate Another
           </Button>
         </div>
@@ -147,6 +239,53 @@ export function GenerateForm() {
     );
   }
 
+  // FILE FLOW: Show appropriate phase UI
+  if (activeTab === "file" && fileFlowPhase !== "upload") {
+    // Phase: Analyzing or Generating - show task status
+    if (
+      fileFlowPhase === "analyzing" ||
+      (fileFlowPhase === "generating" && fileTask?.status !== "outline_ready")
+    ) {
+      return (
+        <div className="rounded-xl border bg-card p-8">
+          {fileTaskId && (
+            <TaskStatusDisplay
+              taskId={fileTaskId}
+              onComplete={handleComplete}
+              onRetry={handleFileRetry}
+              onOutlineReady={handleOutlineReady}
+            />
+          )}
+          <div className="mt-6 flex justify-center">
+            <Button variant="outline" size="lg" onClick={handleFileRetry}>
+              Start Over
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // Phase: Select chapters - show outline selector
+    if (fileFlowPhase === "select" && fileTask?.documentOutline) {
+      return (
+        <div className="rounded-xl border bg-card p-6">
+          <OutlineSelector
+            outline={fileTask.documentOutline}
+            filename={fileTask.sourceFilename}
+            onGenerate={handleSelectChapters}
+            isGenerating={isGeneratingFromOutline}
+          />
+          <div className="mt-4 flex justify-center border-t pt-4">
+            <Button variant="ghost" size="sm" onClick={handleFileRetry}>
+              Upload a different file
+            </Button>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // Default: Show input form
   return (
     <div className="rounded-xl border bg-card">
       <Tabs
@@ -182,7 +321,7 @@ For example:
 - Important facts or formulas"
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
-                disabled={isPending}
+                disabled={isTextPending}
                 className="min-h-[400px] resize-y text-base leading-relaxed"
               />
               <div className="flex items-center justify-between">
@@ -200,6 +339,19 @@ For example:
                   <span className="font-medium text-foreground">1 credit</span>
                 </p>
               </div>
+
+              {/* Submit Button */}
+              <div className="mt-4">
+                <Button
+                  onClick={handleTextSubmit}
+                  disabled={!canSubmitText}
+                  className="w-full gap-2"
+                  size="lg"
+                >
+                  <Sparkles className="size-5" />
+                  {isTextPending ? "Starting..." : "Generate Flashcards"}
+                </Button>
+              </div>
             </div>
           </TabsContent>
 
@@ -208,27 +360,37 @@ For example:
               <FileUpload
                 onUploadComplete={handleUploadComplete}
                 onRemove={handleUploadRemove}
-                disabled={isPending}
+                disabled={isAnalyzing}
               />
-              <p className="text-sm text-muted-foreground">
-                Cost:{" "}
-                <span className="font-medium text-foreground">3 credits</span>
-              </p>
+
+              <div className="rounded-lg border border-dashed bg-muted/20 p-4">
+                <h4 className="text-sm font-medium">How it works</h4>
+                <ol className="mt-2 space-y-1 text-sm text-muted-foreground">
+                  <li>1. Upload your file (PDF, Word, Markdown)</li>
+                  <li>2. We analyze and extract the document structure</li>
+                  <li>3. Select which chapters to generate cards from</li>
+                  <li>4. Get your flashcards!</li>
+                </ol>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Document analysis is <strong>free</strong>. You only pay for
+                  the chapters you generate.
+                </p>
+              </div>
+
+              {/* Submit Button */}
+              <div className="mt-4">
+                <Button
+                  onClick={handleFileAnalyze}
+                  disabled={!canSubmitFile}
+                  className="w-full gap-2"
+                  size="lg"
+                >
+                  <Sparkles className="size-5" />
+                  {isAnalyzing ? "Uploading..." : "Analyze Document"}
+                </Button>
+              </div>
             </div>
           </TabsContent>
-
-          {/* Submit Button */}
-          <div className="mt-8">
-            <Button
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-              className="w-full gap-2"
-              size="lg"
-            >
-              <Sparkles className="size-5" />
-              {isPending ? "Starting Generation..." : "Generate Flashcards"}
-            </Button>
-          </div>
         </div>
       </Tabs>
     </div>

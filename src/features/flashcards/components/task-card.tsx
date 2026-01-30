@@ -2,12 +2,14 @@
 
 import {
   AlertCircle,
+  BookOpen,
   CheckCircle2,
   Clock,
   ExternalLink,
   FileText,
   Globe,
   Loader2,
+  ScanSearch,
   Upload,
   Video,
 } from "lucide-react";
@@ -47,29 +49,50 @@ function getStatusInfo(status: TaskListItem["status"]) {
       return {
         icon: Clock,
         label: "Queued",
-        className: "text-amber-600 bg-amber-50",
-        iconClassName: "text-amber-600",
+        className: "text-amber-600 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-400",
+        iconClassName: "text-amber-600 dark:text-amber-400",
+      };
+    case "analyzing":
+      return {
+        icon: ScanSearch,
+        label: "Analyzing",
+        className: "text-violet-600 bg-violet-50 dark:bg-violet-950/50 dark:text-violet-400",
+        iconClassName: "text-violet-600 dark:text-violet-400 animate-pulse",
+      };
+    case "outline_ready":
+      return {
+        icon: BookOpen,
+        label: "Outline Ready",
+        className: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 dark:text-emerald-400",
+        iconClassName: "text-emerald-600 dark:text-emerald-400",
       };
     case "processing":
       return {
         icon: Loader2,
         label: "Processing",
-        className: "text-blue-600 bg-blue-50",
-        iconClassName: "text-blue-600 animate-spin",
+        className: "text-blue-600 bg-blue-50 dark:bg-blue-950/50 dark:text-blue-400",
+        iconClassName: "text-blue-600 dark:text-blue-400 animate-spin",
+      };
+    case "generating":
+      return {
+        icon: Loader2,
+        label: "Generating",
+        className: "text-blue-600 bg-blue-50 dark:bg-blue-950/50 dark:text-blue-400",
+        iconClassName: "text-blue-600 dark:text-blue-400 animate-spin",
       };
     case "completed":
       return {
         icon: CheckCircle2,
         label: "Completed",
-        className: "text-green-600 bg-green-50",
-        iconClassName: "text-green-600",
+        className: "text-green-600 bg-green-50 dark:bg-green-950/50 dark:text-green-400",
+        iconClassName: "text-green-600 dark:text-green-400",
       };
     case "failed":
       return {
         icon: AlertCircle,
         label: "Failed",
-        className: "text-red-600 bg-red-50",
-        iconClassName: "text-red-600",
+        className: "text-red-600 bg-red-50 dark:bg-red-950/50 dark:text-red-400",
+        iconClassName: "text-red-600 dark:text-red-400",
       };
     default:
       return {
@@ -123,8 +146,10 @@ export function TaskCard({ task }: TaskCardProps) {
     <div
       className={cn(
         "group rounded-lg border bg-card p-4 transition-all hover:shadow-md",
-        task.status === "processing" && "border-blue-200",
-        task.status === "failed" && "border-red-200"
+        (task.status === "processing" || task.status === "generating") && "border-blue-200 dark:border-blue-800",
+        task.status === "analyzing" && "border-violet-200 dark:border-violet-800",
+        task.status === "outline_ready" && "border-emerald-200 dark:border-emerald-800",
+        task.status === "failed" && "border-red-200 dark:border-red-800"
       )}
     >
       <div className="flex items-start gap-4">
@@ -171,16 +196,48 @@ export function TaskCard({ task }: TaskCardProps) {
               </p>
             )}
             {task.status === "failed" && task.errorMessage && (
-              <p className="text-sm text-red-600 line-clamp-2">
+              <p className="text-sm text-red-600 dark:text-red-400 line-clamp-2">
                 {task.errorMessage}
               </p>
             )}
-            {(task.status === "pending" || task.status === "processing") && (
+            {task.status === "pending" && (
               <p className="text-sm text-muted-foreground">
-                {task.status === "pending"
-                  ? "Waiting in queue..."
-                  : "Generating flashcards..."}
+                Waiting in queue...
               </p>
+            )}
+            {task.status === "analyzing" && (
+              <p className="text-sm text-muted-foreground">
+                Analyzing document structure...
+              </p>
+            )}
+            {task.status === "outline_ready" && (
+              <p className="text-sm text-emerald-600 dark:text-emerald-400">
+                {task.documentOutline?.chapters?.length ?? 0} chapters ready for selection
+              </p>
+            )}
+            {task.status === "processing" && (
+              <p className="text-sm text-muted-foreground">
+                Generating flashcards...
+              </p>
+            )}
+            {task.status === "generating" && (
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  {task.totalChunks && task.completedChunks !== null
+                    ? `Generating: ${task.completedChunks}/${task.totalChunks} chunks`
+                    : "Generating flashcards in parallel..."}
+                </p>
+                {task.totalChunks && task.totalChunks > 0 && (
+                  <div className="h-1.5 w-full max-w-[200px] overflow-hidden rounded-full bg-blue-100 dark:bg-blue-900/50">
+                    <div
+                      className="h-full bg-blue-500 transition-all duration-300"
+                      style={{
+                        width: `${Math.round(((task.completedChunks ?? 0) / task.totalChunks) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

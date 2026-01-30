@@ -1,23 +1,34 @@
 "use client";
 
-import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle2,
+  Loader2,
+  ScanSearch,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { useTaskStatus } from "@/features/flashcards/hooks/use-task-status";
 
 interface TaskStatusDisplayProps {
   taskId: string;
   onComplete?: (deckId: string) => void;
   onRetry?: () => void;
+  /** 当大纲就绪时的回调（大文件优化） */
+  onOutlineReady?: () => void;
 }
 
 export function TaskStatusDisplay({
   taskId,
   onComplete,
   onRetry,
+  onOutlineReady,
 }: TaskStatusDisplayProps) {
-  const { task, isLoading, isCompleted, error } = useTaskStatus(taskId);
+  const { task, isLoading, isCompleted, isOutlineReady, progress, error } =
+    useTaskStatus(taskId);
 
   // Call onComplete callback when task completes
   useEffect(() => {
@@ -25,6 +36,13 @@ export function TaskStatusDisplay({
       onComplete(task.deck.id);
     }
   }, [isCompleted, task?.deck?.id, onComplete]);
+
+  // Call onOutlineReady callback
+  useEffect(() => {
+    if (isOutlineReady && onOutlineReady) {
+      onOutlineReady();
+    }
+  }, [isOutlineReady, onOutlineReady]);
 
   // Initial loading state
   if (isLoading && !task) {
@@ -85,7 +103,50 @@ export function TaskStatusDisplay({
     );
   }
 
-  // Processing state
+  // Analyzing state (Phase A - generating outline)
+  if (task.status === "analyzing") {
+    return (
+      <div className="rounded-lg border border-violet-200 bg-violet-50/50 p-4 dark:border-violet-800 dark:bg-violet-950/30">
+        <div className="flex items-center gap-3">
+          <ScanSearch className="size-5 animate-pulse text-violet-600 dark:text-violet-400" />
+          <div className="flex-1">
+            <p className="text-sm font-medium">Analyzing document</p>
+            <p className="text-xs text-muted-foreground">
+              Extracting structure and generating outline...
+            </p>
+          </div>
+        </div>
+        <div className="mt-3">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-violet-100 dark:bg-violet-900/50">
+            <div className="h-full w-2/3 animate-pulse rounded-full bg-violet-500" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Outline ready state (waiting for user selection)
+  if (task.status === "outline_ready") {
+    const chapterCount = task.documentOutline?.chapters?.length ?? 0;
+    return (
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-800 dark:bg-emerald-950/30">
+        <div className="flex items-center gap-3">
+          <BookOpen className="size-5 text-emerald-600 dark:text-emerald-400" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+              Outline ready
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {chapterCount} chapters found. Select which chapters to generate
+              flashcards from.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Processing state (legacy flow)
   if (task.status === "processing") {
     return (
       <div className="rounded-lg border bg-muted/30 p-4">
@@ -104,6 +165,36 @@ export function TaskStatusDisplay({
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div className="h-full w-1/2 animate-pulse bg-primary" />
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Generating state (Phase B - parallel chunk generation)
+  if (task.status === "generating") {
+    return (
+      <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+        <div className="flex items-center gap-3">
+          <Loader2 className="size-5 animate-spin text-blue-600 dark:text-blue-400" />
+          <div className="flex-1">
+            <p className="text-sm font-medium">Generating flashcards</p>
+            <p className="text-xs text-muted-foreground">
+              {progress
+                ? `Processing chunk ${progress.completed}/${progress.total}...`
+                : "Splitting content and generating cards in parallel..."}
+            </p>
+          </div>
+          {progress && (
+            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+              {progress.percentage}%
+            </span>
+          )}
+        </div>
+        <div className="mt-3">
+          <Progress
+            value={progress?.percentage ?? 0}
+            className="h-2"
+          />
         </div>
       </div>
     );
