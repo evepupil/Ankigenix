@@ -3,18 +3,16 @@ import {
   Cpu,
   Eye,
   Globe,
-  Headphones,
-  Image,
+  Layers,
   LayoutDashboard,
-  MessageSquare,
+  type LucideIcon,
   Palette,
   Rocket,
   Search,
-  Settings,
   ShieldCheck,
+  Sparkles,
   Ticket,
   Users,
-  type LucideIcon,
 } from "lucide-react";
 
 /**
@@ -175,42 +173,17 @@ export const footerNav = {
  */
 export const dashboardNav: NavGroup[] = [
   {
-    title: "Application",
+    title: "Flashcards",
     items: [
       {
-        title: "Dashboard",
-        href: "/dashboard",
-        icon: LayoutDashboard,
+        title: "Generate",
+        href: "/dashboard/generate",
+        icon: Sparkles,
       },
       {
-        title: "Settings",
-        href: "/dashboard/settings",
-        icon: Settings,
-      },
-    ],
-  },
-  {
-    title: "AI Demo",
-    items: [
-      {
-        title: "Chat",
-        href: "/dashboard/chat",
-        icon: MessageSquare,
-      },
-      {
-        title: "Image",
-        href: "/dashboard/image",
-        icon: Image,
-      },
-    ],
-  },
-  {
-    title: "Support",
-    items: [
-      {
-        title: "工单支持",
-        href: "/dashboard/support",
-        icon: Headphones,
+        title: "My Decks",
+        href: "/dashboard/decks",
+        icon: Layers,
       },
     ],
   },
