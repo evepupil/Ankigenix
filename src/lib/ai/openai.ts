@@ -1,10 +1,41 @@
 import OpenAI from "openai";
 
 /**
+ * AI 提供商类型
+ */
+export type AIProvider = "openai" | "deepseek";
+
+/**
+ * 获取当前配置的 AI 提供商
+ */
+export function getAIProvider(): AIProvider {
+  return (process.env.AI_PROVIDER as AIProvider) || "openai";
+}
+
+/**
+ * 获取 AI 模型名称
+ */
+export function getAIModel(): string {
+  const provider = getAIProvider();
+  if (provider === "deepseek") {
+    return process.env.DEEPSEEK_MODEL || "deepseek-chat";
+  }
+  return process.env.OPENAI_MODEL || "gpt-4o-mini";
+}
+
+/**
  * OpenAI 客户端实例
  */
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+});
+
+/**
+ * DeepSeek 客户端实例（使用 OpenAI 兼容模式）
+ */
+const deepseek = new OpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: "https://api.deepseek.com/v1",
 });
 
 /**
@@ -39,12 +70,30 @@ Output ONLY a valid JSON array with no additional text:
  * @param maxCards - 最大卡片数量（默认 20）
  * @returns 生成的闪卡数组
  */
+/**
+ * 获取当前活跃的 AI 客户端
+ */
+function getAIClient(): OpenAI {
+  const provider = getAIProvider();
+  return provider === "deepseek" ? deepseek : openai;
+}
+
+/**
+ * 从文本内容生成闪卡
+ *
+ * @param content - 要转换为闪卡的文本内容
+ * @param maxCards - 最大卡片数量（默认 20）
+ * @returns 生成的闪卡数组
+ */
 export async function generateFlashcardsFromText(
   content: string,
   maxCards: number = 20
 ): Promise<Flashcard[]> {
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+  const client = getAIClient();
+  const model = getAIModel();
+
+  const response = await client.chat.completions.create({
+    model,
     messages: [
       {
         role: "system",
@@ -61,9 +110,12 @@ export async function generateFlashcardsFromText(
   });
 
   const responseText = response.choices[0]?.message?.content;
+  const provider = getAIProvider();
 
   if (!responseText) {
-    throw new Error("No response from OpenAI");
+    throw new Error(
+      `No response from ${provider === "deepseek" ? "DeepSeek" : "OpenAI"}`
+    );
   }
 
   try {
@@ -92,11 +144,14 @@ export async function generateFlashcardsFromText(
 
     return validCards.slice(0, maxCards);
   } catch (error) {
+    const provider = getAIProvider();
     if (error instanceof SyntaxError) {
-      throw new Error(`Failed to parse OpenAI response as JSON: ${responseText}`);
+      throw new Error(
+        `Failed to parse ${provider === "deepseek" ? "DeepSeek" : "OpenAI"} response as JSON: ${responseText}`
+      );
     }
     throw error;
   }
 }
 
-export { openai };
+export { openai, deepseek, getAIClient };
