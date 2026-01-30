@@ -3,7 +3,7 @@ import OpenAI from "openai";
 /**
  * AI 提供商类型
  */
-export type AIProvider = "openai" | "deepseek";
+export type AIProvider = "openai" | "deepseek" | "mimo";
 
 /**
  * 获取当前配置的 AI 提供商
@@ -19,6 +19,9 @@ export function getAIModel(): string {
   const provider = getAIProvider();
   if (provider === "deepseek") {
     return process.env.DEEPSEEK_MODEL || "deepseek-chat";
+  }
+  if (provider === "mimo") {
+    return process.env.MIMO_MODEL || "mimo-v2-flash";
   }
   return process.env.OPENAI_MODEL || "gpt-4o-mini";
 }
@@ -36,6 +39,14 @@ const openai = new OpenAI({
 const deepseek = new OpenAI({
   apiKey: process.env.DEEPSEEK_API_KEY,
   baseURL: "https://api.deepseek.com/v1",
+});
+
+/**
+ * 小米 MiMo 客户端实例（使用 OpenAI 兼容模式）
+ */
+const mimo = new OpenAI({
+  apiKey: process.env.MIMO_API_KEY,
+  baseURL: "https://api.xiaomimimo.com/v1",
 });
 
 /**
@@ -75,7 +86,9 @@ Output ONLY a valid JSON array with no additional text:
  */
 function getAIClient(): OpenAI {
   const provider = getAIProvider();
-  return provider === "deepseek" ? deepseek : openai;
+  if (provider === "deepseek") return deepseek;
+  if (provider === "mimo") return mimo;
+  return openai;
 }
 
 /**
@@ -113,9 +126,12 @@ export async function generateFlashcardsFromText(
   const provider = getAIProvider();
 
   if (!responseText) {
-    throw new Error(
-      `No response from ${provider === "deepseek" ? "DeepSeek" : "OpenAI"}`
-    );
+    const providerNames: Record<AIProvider, string> = {
+      openai: "OpenAI",
+      deepseek: "DeepSeek",
+      mimo: "MiMo",
+    };
+    throw new Error(`No response from ${providerNames[provider]}`);
   }
 
   try {
@@ -145,13 +161,18 @@ export async function generateFlashcardsFromText(
     return validCards.slice(0, maxCards);
   } catch (error) {
     const provider = getAIProvider();
+    const providerNames: Record<AIProvider, string> = {
+      openai: "OpenAI",
+      deepseek: "DeepSeek",
+      mimo: "MiMo",
+    };
     if (error instanceof SyntaxError) {
       throw new Error(
-        `Failed to parse ${provider === "deepseek" ? "DeepSeek" : "OpenAI"} response as JSON: ${responseText}`
+        `Failed to parse ${providerNames[provider]} response as JSON: ${responseText}`
       );
     }
     throw error;
   }
 }
 
-export { openai, deepseek, getAIClient };
+export { openai, deepseek, mimo, getAIClient };
