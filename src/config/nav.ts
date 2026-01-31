@@ -187,14 +187,14 @@ export const dashboardNav: NavGroup[] = [
         icon: Sparkles,
       },
       {
-        title: "My Decks",
-        href: "/dashboard/decks",
-        icon: Layers,
-      },
-      {
         title: "Tasks",
         href: "/dashboard/tasks",
         icon: ClipboardList,
+      },
+      {
+        title: "My Decks",
+        href: "/dashboard/decks",
+        icon: Layers,
       },
     ],
   },

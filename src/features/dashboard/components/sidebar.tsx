@@ -109,7 +109,10 @@ export function DashboardSidebar() {
             )}
             <div className="space-y-0.5">
               {group.items.map((item) => {
-                const isActive = pathname === item.href;
+                // 去掉 locale 前缀后比较路径
+                const normalizedPath = pathname.replace(/^\/[a-z]{2}\//, "/");
+                const isActive = normalizedPath === item.href ||
+                  (item.href !== "/dashboard" && normalizedPath.startsWith(item.href + "/"));
                 const Icon = item.icon;
                 const isTasksItem = item.href === "/dashboard/tasks";
                 return (
@@ -120,7 +123,7 @@ export function DashboardSidebar() {
                     className={cn(
                       "flex items-center gap-3 rounded-md px-2 py-1.5 text-sm font-medium transition-colors",
                       isActive
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        ? "bg-primary/10 text-primary"
                         : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
                       isCollapsed && "justify-center px-0",
                       isCollapsed && isTasksItem && "relative"

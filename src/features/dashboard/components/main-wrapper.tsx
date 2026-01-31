@@ -13,15 +13,33 @@ function getPageTitle(pathname: string): string {
   const path = pathname.replace(/^\/[a-z]{2}\//, "/");
   const titleMap: Record<string, string> = {
     "/dashboard": "Dashboard",
-    "/dashboard/chat": "Chat",
-    "/dashboard/image": "Image",
+    "/dashboard/generate": "Generate",
+    "/dashboard/tasks": "Tasks",
+    "/dashboard/decks": "My Decks",
+    "/dashboard/credits/buy": "Buy Credits",
+    "/dashboard/support": "Support",
+    "/dashboard/support/new": "New Ticket",
     "/dashboard/settings": "Settings",
     "/dashboard/settings/profile": "Profile",
     "/dashboard/settings/security": "Security",
     "/dashboard/settings/billing": "Billing",
     "/dashboard/settings/notifications": "Notifications",
   };
-  return titleMap[path] || "Dashboard";
+
+  // 精确匹配
+  if (titleMap[path]) {
+    return titleMap[path];
+  }
+
+  // 动态路由匹配 (如 /dashboard/decks/[id], /dashboard/support/[id])
+  if (path.startsWith("/dashboard/decks/")) {
+    return "Deck Details";
+  }
+  if (path.startsWith("/dashboard/support/")) {
+    return "Ticket Details";
+  }
+
+  return "Dashboard";
 }
 
 /**
