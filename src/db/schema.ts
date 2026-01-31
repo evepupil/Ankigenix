@@ -653,6 +653,9 @@ export const generationTask = pgTable("generation_task", {
   sourceFilename: text("source_filename"),
   errorMessage: text("error_message"),
   cardCount: integer("card_count").notNull().default(0),
+  /** 索引费（Phase A - 文档分析） */
+  indexingCost: real("indexing_cost").default(0),
+  /** 生成费（Phase B - 闪卡生成）或旧版固定费用 */
   creditsCost: real("credits_cost").notNull(),
   // 大文件优化字段
   documentOutline: json("document_outline"),

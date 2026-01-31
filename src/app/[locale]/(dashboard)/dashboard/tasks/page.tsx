@@ -49,6 +49,7 @@ export default async function TasksPage() {
     sourceType: task.sourceType as TaskListItem["sourceType"],
     sourceFilename: task.sourceFilename,
     cardCount: task.cardCount,
+    indexingCost: task.indexingCost,
     creditsCost: task.creditsCost,
     errorMessage: task.errorMessage,
     createdAt: task.createdAt,

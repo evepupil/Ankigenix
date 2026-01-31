@@ -337,8 +337,8 @@ For example:
                     )}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Cost:{" "}
-                  <span className="font-medium text-foreground">1 credit</span>
+                  Estimated:{" "}
+                  <span className="font-medium text-foreground">1.00 credits</span>
                 </p>
               </div>
 
@@ -374,8 +374,9 @@ For example:
                   <li>4. Get your flashcards!</li>
                 </ol>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Document analysis is <strong>free</strong>. You only pay for
-                  the chapters you generate.
+                  <strong>Pay-per-use pricing:</strong> Small indexing fee based
+                  on document size, then generation fee only for selected
+                  chapters.
                 </p>
               </div>
 

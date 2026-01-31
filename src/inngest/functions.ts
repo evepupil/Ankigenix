@@ -287,7 +287,7 @@ export const analyzeDocument = inngest.createFunction(
       // 更新任务的索引费
       await db
         .update(generationTask)
-        .set({ creditsCost: cost })
+        .set({ indexingCost: cost })
         .where(eq(generationTask.id, taskId));
 
       return cost;

@@ -4,6 +4,7 @@ import { BookOpen, Coins, FileText, Sparkles } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { calculateCreationCost } from "@/config/pricing";
 import { cn } from "@/lib/utils";
 
 interface ChapterInfo {
@@ -34,13 +35,6 @@ interface OutlineSelectorProps {
 function formatTokens(tokens: number): string {
   if (tokens < 1000) return `${tokens}`;
   return `${(tokens / 1000).toFixed(1)}k`;
-}
-
-/**
- * 计算积分消耗（每 10k tokens 消耗 1 积分，最少 1）
- */
-function calculateCredits(tokens: number): number {
-  return Math.max(1, Math.ceil(tokens / 10000));
 }
 
 /**
@@ -97,7 +91,7 @@ export function OutlineSelector({
       (sum, ch) => sum + ch.estimatedTokens,
       0
     );
-    const credits = calculateCredits(totalTokens);
+    const credits = calculateCreationCost(totalTokens);
     const cards = estimateCards(totalTokens);
     return {
       selectedCount: selectedChapters.length,
@@ -212,10 +206,9 @@ export function OutlineSelector({
             </span>
             <span className="flex items-center gap-1">
               <Coins className="size-3.5 text-amber-500" />
-              <span className="font-medium">{stats.credits}</span>{" "}
-              <span className="text-muted-foreground">
-                credit{stats.credits > 1 ? "s" : ""}
-              </span>
+              <span className="text-muted-foreground">Estimated:</span>{" "}
+              <span className="font-medium">{stats.credits.toFixed(2)}</span>{" "}
+              <span className="text-muted-foreground">credits</span>
             </span>
           </div>
         </div>

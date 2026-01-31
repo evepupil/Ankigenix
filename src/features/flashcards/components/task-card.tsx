@@ -10,6 +10,7 @@ import {
   Globe,
   Loader2,
   ScanSearch,
+  Sparkles,
   Upload,
   Video,
 } from "lucide-react";
@@ -17,9 +18,41 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { TaskListItem } from "../actions/tasks";
+import { OutlineDialog } from "./outline-dialog";
 
 interface TaskCardProps {
   task: TaskListItem;
+}
+
+/**
+ * 格式化积分显示（保留两位小数）
+ */
+function formatCredits(value: number): string {
+  return value.toFixed(2);
+}
+
+/**
+ * 计算并格式化任务的积分消耗
+ * - outline_ready: 仅显示索引费
+ * - completed/generating: 显示总费用（索引费 + 生成费）
+ * - 其他: 显示 creditsCost（旧版兼容）
+ */
+function getCreditsDisplay(task: TaskListItem): string {
+  const indexing = task.indexingCost ?? 0;
+  const creation = task.creditsCost ?? 0;
+
+  // 大文件流程：有索引费
+  if (indexing > 0) {
+    if (task.status === "outline_ready" || task.status === "analyzing") {
+      // Phase A 完成，仅显示索引费
+      return formatCredits(indexing);
+    }
+    // Phase B 或已完成，显示总费用
+    return formatCredits(indexing + creation);
+  }
+
+  // 旧版流程：无索引费，直接显示生成费
+  return formatCredits(creation);
 }
 
 /**
@@ -184,7 +217,7 @@ export function TaskCard({ task }: TaskCardProps) {
 
             {/* 积分消耗 */}
             <span className="text-xs text-muted-foreground">
-              {task.creditsCost} credit{task.creditsCost > 1 ? "s" : ""}
+              {getCreditsDisplay(task)} credits
             </span>
           </div>
 
@@ -256,6 +289,14 @@ export function TaskCard({ task }: TaskCardProps) {
                 <ExternalLink className="ml-1.5 h-3 w-3" />
               </Link>
             </Button>
+          )}
+          {task.status === "outline_ready" && task.documentOutline && (
+            <OutlineDialog task={task}>
+              <Button size="sm" variant="default" className="gap-1.5">
+                <Sparkles className="h-3.5 w-3.5" />
+                Select Chapters
+              </Button>
+            </OutlineDialog>
           )}
         </div>
       </div>

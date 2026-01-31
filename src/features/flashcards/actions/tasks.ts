@@ -27,6 +27,9 @@ export interface TaskListItem {
   sourceType: "text" | "file" | "url" | "video";
   sourceFilename: string | null;
   cardCount: number;
+  /** 索引费（Phase A - 文档分析） */
+  indexingCost: number | null;
+  /** 生成费（Phase B - 闪卡生成）或旧版固定费用 */
   creditsCost: number;
   errorMessage: string | null;
   createdAt: Date;
@@ -78,6 +81,7 @@ export const getUserTasksAction = protectedAction.action(
       sourceType: task.sourceType as TaskListItem["sourceType"],
       sourceFilename: task.sourceFilename,
       cardCount: task.cardCount,
+      indexingCost: task.indexingCost,
       creditsCost: task.creditsCost,
       errorMessage: task.errorMessage,
       createdAt: task.createdAt,
