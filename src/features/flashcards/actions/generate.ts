@@ -8,19 +8,13 @@ import { db } from "@/db";
 import { creditsBalance, generationTask } from "@/db/schema";
 import {
   CREDIT_COSTS_BY_SOURCE,
+  MAX_TEXT_CHARACTERS,
   MIN_CREDITS_COST,
   calculateCreationCost,
 } from "@/config/pricing";
 import { inngest } from "@/inngest";
+import { countTokens } from "@/lib/ai/tokenizer";
 import { protectedAction } from "@/lib/safe-action";
-
-/**
- * 字符限制规则
- */
-const CHARACTER_LIMITS = {
-  free: 1000,
-  pro: 10000,
-} as const;
 
 /**
  * 生成闪卡 Schema
@@ -59,18 +53,28 @@ export const generateFlashcardsAction = protectedAction
       throw new Error("File URL and filename are required for file input");
     }
 
-    // 检查文本长度限制（简化版，假设都是免费用户）
+    // 检查文本长度限制
     if (sourceType === "text" && content) {
-      const limit = CHARACTER_LIMITS.free;
-      if (content.length > limit) {
+      if (content.length > MAX_TEXT_CHARACTERS) {
         throw new Error(
-          `Text exceeds ${limit} character limit. Upgrade to Pro for up to ${CHARACTER_LIMITS.pro} characters.`
+          `Text exceeds ${MAX_TEXT_CHARACTERS.toLocaleString()} character limit.`
         );
       }
     }
 
     // 计算积分消耗
-    const creditsCost = CREDIT_COSTS_BY_SOURCE[sourceType];
+    let creditsCost: number;
+    if (sourceType === "text" && content) {
+      // 文本：按 token 数量计费（2.0 / 万 tokens）
+      const tokens = countTokens(content);
+      creditsCost = calculateCreationCost(tokens);
+    } else if (sourceType === "url" || sourceType === "video") {
+      // URL/视频：固定费用
+      creditsCost = CREDIT_COSTS_BY_SOURCE[sourceType];
+    } else {
+      // 文件：通过两阶段流程计费，这里不应走到
+      creditsCost = MIN_CREDITS_COST;
+    }
 
     // 检查用户积分余额
     const balance = await db.query.creditsBalance.findFirst({

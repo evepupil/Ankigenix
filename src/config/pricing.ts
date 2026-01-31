@@ -18,24 +18,22 @@
 export const INDEXING_RATE_PER_10K_TOKENS = 1.2;
 
 /**
- * 生成费 (Creation) - Phase B
+ * 生成费 (Creation) - Phase B / Text Input
  *
  * 用户选择章节生成卡片时按选中章节的 Input Tokens 扣费
- * 知识产出溢价
+ * 也用于文本输入的按量计费
  */
 export const CREATION_RATE_PER_10K_TOKENS = 2.0;
 
 // ============================================
-// 简单来源的固定积分消耗（旧版/小文件流程）
+// 简单来源的固定积分消耗（旧版流程）
 // ============================================
 
 /**
- * 按输入类型的固定积分消耗
+ * 按输入类型的固定积分消耗（仅用于 URL/视频等非文本来源）
  */
 export const CREDIT_COSTS_BY_SOURCE = {
-  text: 1,
   url: 3,
-  file: 3,
   video: 5,
 } as const;
 
@@ -47,6 +45,11 @@ export const CREDIT_COSTS_BY_SOURCE = {
  * 单次操作最低消耗积分
  */
 export const MIN_CREDITS_COST = 0.01;
+
+/**
+ * 文本输入最大字符数
+ */
+export const MAX_TEXT_CHARACTERS = 100000;
 
 // ============================================
 // 工具函数
@@ -60,6 +63,27 @@ export const MIN_CREDITS_COST = 0.01;
  */
 export function truncateToTwoDecimals(value: number): number {
   return Math.floor(value * 100) / 100;
+}
+
+/**
+ * 估算文本的 token 数量（客户端友好，无需 tokenizer 库）
+ *
+ * 规则：英文 ~4 字符/token，中文 ~2 字符/token
+ *
+ * @param text - 要估算的文本
+ * @returns 估算的 token 数量
+ */
+export function estimateTokensFromText(text: string): number {
+  if (!text || text.length === 0) {
+    return 0;
+  }
+
+  // 统计中文字符数量
+  const chineseChars = (text.match(/[\u4e00-\u9fff]/g) || []).length;
+  const otherChars = text.length - chineseChars;
+
+  // 中文约 2 字符/token，其他约 4 字符/token
+  return Math.ceil(chineseChars / 2 + otherChars / 4);
 }
 
 // ============================================
@@ -78,12 +102,23 @@ export function calculateIndexingCost(totalTokens: number): number {
 }
 
 /**
- * 计算生成费（Phase B）
+ * 计算生成费（Phase B / Text Input）
  *
- * @param selectedTokens - 选中章节的 Input Tokens
+ * @param selectedTokens - 选中章节的 Input Tokens 或文本 Tokens
  * @returns 积分消耗量（两位小数，最低 MIN_CREDITS_COST）
  */
 export function calculateCreationCost(selectedTokens: number): number {
   const cost = (selectedTokens / 10000) * CREATION_RATE_PER_10K_TOKENS;
   return Math.max(MIN_CREDITS_COST, truncateToTwoDecimals(cost));
+}
+
+/**
+ * 估算文本输入的积分消耗（客户端实时预估）
+ *
+ * @param text - 输入的文本
+ * @returns 预估积分消耗（两位小数）
+ */
+export function estimateTextCredits(text: string): number {
+  const estimatedTokens = estimateTokensFromText(text);
+  return calculateCreationCost(estimatedTokens);
 }

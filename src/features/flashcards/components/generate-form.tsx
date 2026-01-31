@@ -3,11 +3,16 @@
 import { FileText, Sparkles, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  MAX_TEXT_CHARACTERS,
+  estimateTextCredits,
+  estimateTokensFromText,
+} from "@/config/pricing";
 import {
   analyzeDocumentAction,
   generateFlashcardsAction,
@@ -19,7 +24,7 @@ import { FileUpload } from "./file-upload";
 import { OutlineSelector } from "./outline-selector";
 import { TaskStatusDisplay } from "./task-status";
 
-const MAX_TEXT_LENGTH = 1000;
+const MAX_TEXT_LENGTH = MAX_TEXT_CHARACTERS;
 const MIN_TEXT_LENGTH = 10;
 
 type InputMode = "text" | "file";
@@ -212,6 +217,16 @@ export function GenerateForm() {
   const canSubmitFile =
     !isAnalyzing && fileFlowPhase === "upload" && isFileValid;
 
+  // Real-time token & credit estimation for text input
+  const textEstimate = useMemo(() => {
+    if (textContent.length < MIN_TEXT_LENGTH) {
+      return { tokens: 0, credits: 0 };
+    }
+    const tokens = estimateTokensFromText(textContent);
+    const credits = estimateTextCredits(textContent);
+    return { tokens, credits };
+  }, [textContent]);
+
   const characterCountColor = cn(
     "text-sm transition-colors",
     textContent.length === 0
@@ -328,7 +343,7 @@ For example:
               />
               <div className="flex items-center justify-between">
                 <p className={characterCountColor}>
-                  {textContent.length} / {MAX_TEXT_LENGTH} characters
+                  {textContent.length.toLocaleString()} / {MAX_TEXT_LENGTH.toLocaleString()} characters
                   {textContent.length > 0 &&
                     textContent.length < MIN_TEXT_LENGTH && (
                       <span className="ml-2 text-muted-foreground">
@@ -336,10 +351,15 @@ For example:
                       </span>
                     )}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  Estimated:{" "}
-                  <span className="font-medium text-foreground">1.00 credits</span>
-                </p>
+                {textContent.length >= MIN_TEXT_LENGTH && (
+                  <p className="text-sm text-muted-foreground">
+                    ~{textEstimate.tokens.toLocaleString()} tokens{" · "}
+                    Estimated:{" "}
+                    <span className="font-medium text-foreground">
+                      {textEstimate.credits.toFixed(2)} credits
+                    </span>
+                  </p>
+                )}
               </div>
 
               {/* Submit Button */}
