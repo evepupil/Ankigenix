@@ -92,7 +92,7 @@ export default async function LegalPage({
       </header>
 
       {/* 文档内容 - 使用 Tailwind Typography 样式 */}
-      <div className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-semibold prose-h2:text-xl prose-h2:mt-8 prose-h3:text-lg prose-a:text-violet-600 prose-a:no-underline hover:prose-a:underline prose-table:text-sm prose-th:bg-muted prose-th:p-2 prose-td:p-2 prose-td:border">
+      <div className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-semibold prose-h2:text-xl prose-h2:mt-8 prose-h3:text-lg prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-table:text-sm prose-th:bg-muted prose-th:p-2 prose-td:p-2 prose-td:border">
         <MDXContent />
       </div>
 
@@ -105,7 +105,7 @@ export default async function LegalPage({
           {slug !== "terms" && (
             <Link
               href="/legal/terms"
-              className="text-violet-600 hover:underline"
+              className="text-primary hover:underline"
             >
               {locale === "zh" ? "服务条款" : "Terms of Service"}
             </Link>
@@ -113,7 +113,7 @@ export default async function LegalPage({
           {slug !== "privacy" && (
             <Link
               href="/legal/privacy"
-              className="text-violet-600 hover:underline"
+              className="text-primary hover:underline"
             >
               {locale === "zh" ? "隐私政策" : "Privacy Policy"}
             </Link>
@@ -121,7 +121,7 @@ export default async function LegalPage({
           {slug !== "cookie-policy" && (
             <Link
               href="/legal/cookie-policy"
-              className="text-violet-600 hover:underline"
+              className="text-primary hover:underline"
             >
               {locale === "zh" ? "Cookie 政策" : "Cookie Policy"}
             </Link>

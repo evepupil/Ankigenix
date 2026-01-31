@@ -170,7 +170,7 @@ export default async function AdminTicketDetailPage({
                   src={ticketUser?.image || undefined}
                   alt={ticketUser?.name || "用户"}
                 />
-                <AvatarFallback className="bg-violet-600 text-white">
+                <AvatarFallback className="bg-primary text-primary-foreground">
                   {ticketUser?.name ? getInitials(ticketUser.name) : "U"}
                 </AvatarFallback>
               </Avatar>
@@ -221,7 +221,7 @@ export default async function AdminTicketDetailPage({
                   className={
                     msg.isAdminResponse
                       ? "bg-blue-600 text-white"
-                      : "bg-violet-600 text-white"
+                      : "bg-primary text-primary-foreground"
                   }
                 >
                   {msg.user?.name ? getInitials(msg.user.name) : "U"}

@@ -113,7 +113,7 @@ export default async function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="border-border shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Decks</CardTitle>
             <Layers className="h-4 w-4 text-muted-foreground" />
@@ -126,7 +126,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Cards</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Credits</CardTitle>
             <Coins className="h-4 w-4 text-muted-foreground" />
@@ -150,7 +150,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Active Tasks</CardTitle>
             <ListTodo className="h-4 w-4 text-muted-foreground" />
@@ -196,7 +196,7 @@ export default async function DashboardPage() {
         </div>
 
         {recentTasks.length === 0 ? (
-          <Card>
+          <Card className="border-border shadow-none">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                 <Sparkles className="h-8 w-8 text-muted-foreground" />

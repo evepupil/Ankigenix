@@ -78,7 +78,7 @@ export function Testimonials() {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={testimonial.avatar} />
-                    <AvatarFallback className="bg-violet-100 text-violet-700">
+                    <AvatarFallback className="bg-primary/10 text-primary">
                       {testimonial.author.charAt(0)}
                     </AvatarFallback>
                   </Avatar>

@@ -27,7 +27,7 @@ export function BlogPostItem({ post }: BlogPostItemProps) {
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl font-bold tracking-tight transition-colors group-hover:text-violet-600 md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight transition-colors group-hover:text-primary md:text-3xl">
             {post.title}
           </h2>
 

@@ -40,7 +40,7 @@ export function Header() {
         <div className="flex items-center gap-8">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <Blocks className="h-6 w-6 text-indigo-600" />
+            <Blocks className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold tracking-tight">
               {siteConfig.name}
             </span>
@@ -72,7 +72,7 @@ export function Header() {
               <Link href="/dashboard">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.image || undefined} alt={user.name} />
-                  <AvatarFallback className="bg-indigo-600 text-xs text-white">
+                  <AvatarFallback className="bg-primary text-xs text-primary-foreground">
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
@@ -88,10 +88,7 @@ export function Header() {
               >
                 <Link href="/sign-in">Log in</Link>
               </Button>
-              <Button
-                asChild
-                className="bg-indigo-600 px-6 text-white hover:bg-indigo-700"
-              >
+              <Button asChild>
                 <Link href="/sign-up">Get Started</Link>
               </Button>
             </>

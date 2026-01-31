@@ -34,7 +34,7 @@ export function Footer() {
                 placeholder="Enter your email"
                 className="flex-1"
               />
-              <Button className="bg-violet-600 hover:bg-violet-700">
+              <Button>
                 Subscribe
               </Button>
             </form>

@@ -89,8 +89,8 @@ function getStatusInfo(status: TaskListItem["status"]) {
       return {
         icon: ScanSearch,
         label: "Analyzing",
-        className: "text-violet-600 bg-violet-50 dark:bg-violet-950/50 dark:text-violet-400",
-        iconClassName: "text-violet-600 dark:text-violet-400 animate-pulse",
+        className: "text-primary bg-primary/5 dark:bg-primary/10 dark:text-primary",
+        iconClassName: "text-primary dark:text-primary animate-pulse",
       };
     case "outline_ready":
       return {
@@ -180,7 +180,7 @@ export function TaskCard({ task }: TaskCardProps) {
       className={cn(
         "group rounded-lg border bg-card p-4 transition-all hover:shadow-md",
         (task.status === "processing" || task.status === "generating") && "border-blue-200 dark:border-blue-800",
-        task.status === "analyzing" && "border-violet-200 dark:border-violet-800",
+        task.status === "analyzing" && "border-primary/20 dark:border-primary/30",
         task.status === "outline_ready" && "border-emerald-200 dark:border-emerald-800",
         task.status === "failed" && "border-red-200 dark:border-red-800"
       )}

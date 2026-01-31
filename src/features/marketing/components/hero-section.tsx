@@ -36,9 +36,9 @@ export function HeroSection() {
         {/* Badge */}
         <Badge
           variant="outline"
-          className="mb-6 gap-2 rounded-full px-4 py-2 text-sm font-medium"
+          className="mb-6 gap-2 rounded-full border-border px-4 py-2 text-sm font-medium"
         >
-          <Sparkles className="h-4 w-4 text-violet-500" />
+          <Sparkles className="h-4 w-4 text-primary" />
           {t("badge")}
           <ArrowRight className="h-4 w-4" />
         </Badge>
@@ -46,7 +46,7 @@ export function HeroSection() {
         {/* Headline */}
         <h1 className="mb-6 text-balance text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl">
           {t("title1")}{" "}
-          <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+          <span className="text-primary">
             {t("titleHighlight")}
           </span>{" "}
           {t("title2")}
@@ -61,7 +61,7 @@ export function HeroSection() {
         <div className="mb-12 flex flex-col gap-4 sm:flex-row">
           <Button
             size="lg"
-            className="gap-2 bg-violet-600 hover:bg-violet-700"
+            className="gap-2"
             asChild
           >
             <Link href="/sign-up">
@@ -83,12 +83,12 @@ export function HeroSection() {
             {avatars.map((avatar, i) => (
               <Avatar key={i} className="h-10 w-10 border-2 border-background">
                 <AvatarImage src={avatar.src} />
-                <AvatarFallback className="bg-violet-100 text-violet-700">
+                <AvatarFallback className="bg-primary/10 text-primary">
                   {avatar.fallback}
                 </AvatarFallback>
               </Avatar>
             ))}
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-violet-600 text-xs font-medium text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-primary text-xs font-medium text-primary-foreground">
               +2k
             </div>
           </div>
@@ -96,33 +96,32 @@ export function HeroSection() {
 
         {/* Hero Image */}
         <div className="relative w-full max-w-4xl">
-          <div className="absolute -inset-4 rounded-3xl bg-gradient-to-r from-violet-500/20 via-purple-500/20 to-indigo-500/20 blur-3xl" />
-          <div className="relative overflow-hidden rounded-xl border bg-background shadow-2xl">
-            <div className="flex items-center gap-2 border-b bg-muted/50 px-4 py-3">
+          <div className="relative overflow-hidden rounded-lg border border-border bg-card">
+            <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-4 py-3">
               <div className="flex gap-1.5">
                 <div className="h-3 w-3 rounded-full bg-red-500" />
                 <div className="h-3 w-3 rounded-full bg-yellow-500" />
                 <div className="h-3 w-3 rounded-full bg-green-500" />
               </div>
               <div className="flex-1 text-center text-sm text-muted-foreground">
-                dashboard.nextdevtpl.com
+                ankigenix.com
               </div>
             </div>
-            <div className="aspect-[16/9] bg-gradient-to-br from-muted/50 to-muted p-8">
+            <div className="aspect-[16/9] bg-muted/20 p-8">
               <div className="grid h-full grid-cols-3 gap-4">
                 <div className="space-y-4">
-                  <div className="h-24 rounded-lg bg-background/80 shadow-sm" />
-                  <div className="h-24 rounded-lg bg-background/80 shadow-sm" />
-                  <div className="h-32 rounded-lg bg-background/80 shadow-sm" />
+                  <div className="h-24 rounded-md border border-border bg-card" />
+                  <div className="h-24 rounded-md border border-border bg-card" />
+                  <div className="h-32 rounded-md border border-border bg-card" />
                 </div>
                 <div className="space-y-4">
-                  <div className="h-48 rounded-lg bg-background/80 shadow-sm" />
-                  <div className="h-36 rounded-lg bg-background/80 shadow-sm" />
+                  <div className="h-48 rounded-md border border-border bg-card" />
+                  <div className="h-36 rounded-md border border-border bg-card" />
                 </div>
                 <div className="space-y-4">
-                  <div className="h-20 rounded-lg bg-background/80 shadow-sm" />
-                  <div className="h-28 rounded-lg bg-background/80 shadow-sm" />
-                  <div className="h-32 rounded-lg bg-background/80 shadow-sm" />
+                  <div className="h-20 rounded-md border border-border bg-card" />
+                  <div className="h-28 rounded-md border border-border bg-card" />
+                  <div className="h-32 rounded-md border border-border bg-card" />
                 </div>
               </div>
             </div>

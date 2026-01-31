@@ -80,7 +80,7 @@ export default async function BlogPostPage({
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700 dark:bg-violet-900 dark:text-violet-300"
+                className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
               >
                 {tag}
               </span>
@@ -109,7 +109,7 @@ export default async function BlogPostPage({
       </header>
 
       {/* 文章内容 */}
-      <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-violet-600 prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-pre:bg-muted">
+      <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-primary prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-pre:bg-muted">
         <MDXContent />
       </div>
     </article>

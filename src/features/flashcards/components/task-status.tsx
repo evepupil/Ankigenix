@@ -106,9 +106,9 @@ export function TaskStatusDisplay({
   // Analyzing state (Phase A - generating outline)
   if (task.status === "analyzing") {
     return (
-      <div className="rounded-lg border border-violet-200 bg-violet-50/50 p-4 dark:border-violet-800 dark:bg-violet-950/30">
+      <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 dark:border-primary/30 dark:bg-primary/10">
         <div className="flex items-center gap-3">
-          <ScanSearch className="size-5 animate-pulse text-violet-600 dark:text-violet-400" />
+          <ScanSearch className="size-5 animate-pulse text-primary" />
           <div className="flex-1">
             <p className="text-sm font-medium">Analyzing document</p>
             <p className="text-xs text-muted-foreground">
@@ -117,8 +117,8 @@ export function TaskStatusDisplay({
           </div>
         </div>
         <div className="mt-3">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-violet-100 dark:bg-violet-900/50">
-            <div className="h-full w-2/3 animate-pulse rounded-full bg-violet-500" />
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary/10 dark:bg-primary/20">
+            <div className="h-full w-2/3 animate-pulse rounded-full bg-primary" />
           </div>
         </div>
       </div>

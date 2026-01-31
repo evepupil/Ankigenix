@@ -46,15 +46,15 @@ export function DashboardMainWrapper({
         isCollapsed ? "ml-16" : "ml-64"
       )}
     >
-      {/* 卡片容器 - #f8f8f8 背景，圆角，边缘阴影 */}
-      <div className="min-h-[calc(100vh-20px)] rounded-[10px] bg-[#f8f8f8] shadow-[0_0_8px_rgba(0,0,0,0.06)] flex flex-col">
+      {/* 卡片容器 - Linear style: clean background, subtle border */}
+      <div className="min-h-[calc(100vh-20px)] rounded-lg bg-background border border-border flex flex-col">
         {/* Header - 在卡片内部 */}
-        <header className="flex h-14 items-center gap-3 border-b border-neutral-100 px-4 shrink-0">
+        <header className="flex h-12 items-center gap-3 border-b border-border px-4 shrink-0">
           {/* 侧边栏折叠按钮 */}
           <button
             type="button"
             onClick={toggleSidebar}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-neutral-100 transition-colors cursor-pointer"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
           >
             {isCollapsed ? (
               <PanelLeft className="h-4 w-4 pointer-events-none" />
@@ -64,7 +64,7 @@ export function DashboardMainWrapper({
           </button>
 
           {/* 分割线 - 与文字等高，淡色 */}
-          <div className="h-4 w-px bg-neutral-200" />
+          <div className="h-4 w-px bg-border" />
 
           {/* 页面标题 */}
           <span className="text-sm font-medium text-foreground">{pageTitle}</span>

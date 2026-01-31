@@ -164,7 +164,7 @@ export function CookieConsent() {
                 </Button>
                 <Button
                   size="sm"
-                  className="bg-violet-600 hover:bg-violet-700"
+                  className=""
                   onClick={handleAcceptAll}
                 >
                   接受全部
@@ -242,7 +242,7 @@ export function CookieConsent() {
                 </Button>
                 <Button
                   size="sm"
-                  className="bg-violet-600 hover:bg-violet-700"
+                  className=""
                   onClick={handleSavePreferences}
                 >
                   保存设置

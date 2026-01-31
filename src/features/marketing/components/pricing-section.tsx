@@ -219,13 +219,13 @@ export function PricingSection({ currentPriceId }: PricingSectionProps) {
                 className={cn(
                   "relative flex flex-col rounded-xl",
                   plan.popular &&
-                    "border-violet-500 shadow-lg shadow-violet-500/10",
+                    "border-primary shadow-lg shadow-primary/10",
                   plan.dark && "border-0 bg-foreground text-background",
                   isCurrent && "ring-2 ring-green-500"
                 )}
               >
                 {plan.popular && !isCurrent && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600">
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary">
                     Most Popular
                   </Badge>
                 )}
@@ -306,7 +306,7 @@ export function PricingSection({ currentPriceId }: PricingSectionProps) {
                         <Check
                           className={cn(
                             "h-4 w-4 shrink-0",
-                            plan.dark ? "text-background" : "text-violet-600"
+                            plan.dark ? "text-background" : "text-primary"
                           )}
                         />
                         <span
@@ -339,7 +339,6 @@ export function PricingSection({ currentPriceId }: PricingSectionProps) {
                     <Button
                       className={cn(
                         "w-full",
-                        plan.popular && "bg-violet-600 hover:bg-violet-700",
                         plan.dark &&
                           "bg-background text-foreground hover:bg-background/90"
                       )}

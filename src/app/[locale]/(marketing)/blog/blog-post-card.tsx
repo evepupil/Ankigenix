@@ -48,7 +48,7 @@ export function BlogPostCard({
           )}
 
           {/* 标题 */}
-          <h2 className="text-2xl font-bold tracking-tight transition-colors group-hover:text-violet-600 md:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight transition-colors group-hover:text-primary md:text-3xl">
             {title}
           </h2>
 

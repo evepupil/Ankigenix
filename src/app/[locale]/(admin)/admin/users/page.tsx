@@ -376,7 +376,7 @@ export default function AdminUsersPage() {
                               src={u.image || undefined}
                               alt={u.name}
                             />
-                            <AvatarFallback className="bg-violet-600 text-white text-xs">
+                            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                               {getInitials(u.name)}
                             </AvatarFallback>
                           </Avatar>

@@ -80,7 +80,7 @@ export function DashboardSidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 flex h-screen flex-col bg-[#f5f5f5] transition-all duration-300",
+        "fixed left-0 top-0 z-40 flex h-screen flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
@@ -120,8 +120,8 @@ export function DashboardSidebar() {
                     className={cn(
                       "flex items-center gap-3 rounded-md px-2 py-1.5 text-sm font-medium transition-colors",
                       isActive
-                        ? "bg-white text-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-white/60 hover:text-foreground",
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
                       isCollapsed && "justify-center px-0",
                       isCollapsed && isTasksItem && "relative"
                     )}
@@ -145,20 +145,20 @@ export function DashboardSidebar() {
       </nav>
 
       {/* 用户信息区域 */}
-      <div className="border-t border-neutral-200 p-3">
+      <div className="border-t border-sidebar-border p-3">
         {user ? (
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <button
                 type="button"
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-md px-2 py-1.5 hover:bg-white/60 transition-colors",
+                  "flex w-full items-center gap-3 rounded-md px-2 py-1.5 hover:bg-sidebar-accent/50 transition-colors",
                   isCollapsed && "justify-center px-0"
                 )}
               >
                 <Avatar className="h-8 w-8 shrink-0">
                   <AvatarImage src={user.image || undefined} alt={user.name} />
-                  <AvatarFallback className="bg-violet-600 text-white text-xs">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
@@ -189,7 +189,7 @@ export function DashboardSidebar() {
               <div className="flex items-center gap-3 p-4">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={user.image || undefined} alt={user.name} />
-                  <AvatarFallback className="bg-violet-600 text-white">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
@@ -242,11 +242,11 @@ export function DashboardSidebar() {
               isCollapsed && "justify-center px-0"
             )}
           >
-            <div className="h-8 w-8 animate-pulse rounded-full bg-neutral-200 shrink-0" />
+            <div className="h-8 w-8 animate-pulse rounded-full bg-sidebar-accent shrink-0" />
             {!isCollapsed && (
               <div className="flex-1 space-y-1">
-                <div className="h-4 w-20 animate-pulse rounded bg-neutral-200" />
-                <div className="h-3 w-32 animate-pulse rounded bg-neutral-200" />
+                <div className="h-4 w-20 animate-pulse rounded bg-sidebar-accent" />
+                <div className="h-3 w-32 animate-pulse rounded bg-sidebar-accent" />
               </div>
             )}
           </div>

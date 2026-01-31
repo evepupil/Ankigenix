@@ -121,7 +121,7 @@ export function ForgotPasswordForm() {
         {/* 提交按钮 */}
         <Button
           type="submit"
-          className="w-full bg-indigo-500 hover:bg-indigo-600"
+          className="w-full"
           disabled={isLoading}
         >
           {isLoading ? (

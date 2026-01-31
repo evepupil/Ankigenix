@@ -54,13 +54,13 @@ export function HowItWorks() {
 
                 {/* Icon */}
                 <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border bg-background shadow-sm md:h-20 md:w-20">
-                  <Icon className="h-5 w-5 text-violet-600 md:h-8 md:w-8" />
+                  <Icon className="h-5 w-5 text-primary md:h-8 md:w-8" />
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 pb-8">
                   <div className="mb-2 flex items-center gap-3">
-                    <span className="text-sm font-medium text-violet-600">
+                    <span className="text-sm font-medium text-primary">
                       Step {step.step}
                     </span>
                   </div>

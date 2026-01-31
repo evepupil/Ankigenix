@@ -76,7 +76,7 @@ export function FeatureGrid() {
         <div className="mb-16 text-center">
           <h2 className="mb-4 text-balance text-3xl font-bold tracking-tight md:text-4xl">
             A Collection of Components Built With{" "}
-            <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+            <span className="text-primary">
               Shadcn & Tailwind
             </span>
           </h2>
@@ -93,11 +93,11 @@ export function FeatureGrid() {
             return (
               <Card
                 key={feature.title}
-                className="group rounded-xl border-0 bg-muted/50 transition-colors hover:bg-muted"
+                className="group border-border shadow-none transition-colors hover:bg-accent/50"
               >
                 <CardContent className="p-6">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-violet-100 text-violet-600 transition-colors group-hover:bg-violet-600 group-hover:text-white dark:bg-violet-900/50">
-                    <Icon className="h-6 w-6" />
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                    <Icon className="h-5 w-5" />
                   </div>
                   <h3 className="mb-2 font-semibold">{feature.title}</h3>
                   <p className="text-sm text-muted-foreground">

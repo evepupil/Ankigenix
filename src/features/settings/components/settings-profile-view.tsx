@@ -331,7 +331,7 @@ export function SettingsProfileView({ user }: SettingsProfileViewProps) {
               >
                 <Avatar className="h-24 w-24 transition-opacity group-hover:opacity-80 group-disabled:opacity-60">
                   <AvatarImage src={currentAvatarUrl} alt={user.name} />
-                  <AvatarFallback className="bg-violet-600 text-white text-2xl">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
