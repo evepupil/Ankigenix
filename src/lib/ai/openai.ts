@@ -71,8 +71,8 @@ Rules:
 6. Use simple language that aids memorization
 7. Generate between 5-20 cards depending on content length
 
-Output ONLY a valid JSON array with no additional text:
-[{"front": "question/concept", "back": "answer/explanation"}, ...]`;
+You MUST respond with a valid JSON object in this exact format:
+{"cards": [{"front": "question/concept", "back": "answer/explanation"}, ...]}`;
 
 /**
  * 从文本内容生成闪卡
@@ -135,8 +135,17 @@ export async function generateFlashcardsFromText(
   }
 
   try {
+    // 清理可能的 markdown 代码块包裹
+    let cleanedResponse = responseText.trim();
+    if (cleanedResponse.startsWith("```")) {
+      // 移除开头的 ```json 或 ``` 和结尾的 ```
+      cleanedResponse = cleanedResponse
+        .replace(/^```(?:json)?\s*\n?/, "")
+        .replace(/\n?```\s*$/, "");
+    }
+
     // 解析 JSON 响应
-    const parsed = JSON.parse(responseText);
+    const parsed = JSON.parse(cleanedResponse);
 
     // 支持两种格式：直接数组或 { cards: [...] } 对象
     const cards: Flashcard[] = Array.isArray(parsed)
