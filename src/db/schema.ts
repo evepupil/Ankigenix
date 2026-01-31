@@ -5,6 +5,7 @@ import {
   json,
   pgEnum,
   pgTable,
+  real,
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
@@ -268,9 +269,9 @@ export const creditsBalance = pgTable("credits_balance", {
     .notNull()
     .unique()
     .references(() => user.id, { onDelete: "cascade" }),
-  balance: integer("balance").notNull().default(0),
-  totalEarned: integer("total_earned").notNull().default(0),
-  totalSpent: integer("total_spent").notNull().default(0),
+  balance: real("balance").notNull().default(0),
+  totalEarned: real("total_earned").notNull().default(0),
+  totalSpent: real("total_spent").notNull().default(0),
   status: creditsBalanceStatusEnum("status").notNull().default("active"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -302,8 +303,8 @@ export const creditsBatch = pgTable("credits_batch", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  amount: integer("amount").notNull(),
-  remaining: integer("remaining").notNull(),
+  amount: real("amount").notNull(),
+  remaining: real("remaining").notNull(),
   issuedAt: timestamp("issued_at").notNull().defaultNow(),
   expiresAt: timestamp("expires_at"),
   status: creditsBatchStatusEnum("status").notNull().default("active"),
@@ -338,7 +339,7 @@ export const creditsTransaction = pgTable("credits_transaction", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   type: creditsTransactionTypeEnum("type").notNull(),
-  amount: integer("amount").notNull(),
+  amount: real("amount").notNull(),
   debitAccount: text("debit_account").notNull(),
   creditAccount: text("credit_account").notNull(),
   description: text("description"),
@@ -652,7 +653,7 @@ export const generationTask = pgTable("generation_task", {
   sourceFilename: text("source_filename"),
   errorMessage: text("error_message"),
   cardCount: integer("card_count").notNull().default(0),
-  creditsCost: integer("credits_cost").notNull(),
+  creditsCost: real("credits_cost").notNull(),
   // 大文件优化字段
   documentOutline: json("document_outline"),
   documentText: text("document_text"),

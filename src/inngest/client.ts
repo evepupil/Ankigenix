@@ -45,6 +45,7 @@ export type Events = {
       userId: string;
       sourceUrl: string;
       sourceFilename: string;
+      fileKey: string;
       userPlan?: "free" | "pro";
     };
   };

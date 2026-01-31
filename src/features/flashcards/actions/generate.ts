@@ -6,18 +6,13 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
 import { creditsBalance, generationTask } from "@/db/schema";
+import {
+  CREDIT_COSTS_BY_SOURCE,
+  MIN_CREDITS_COST,
+  calculateCreationCost,
+} from "@/config/pricing";
 import { inngest } from "@/inngest";
 import { protectedAction } from "@/lib/safe-action";
-
-/**
- * 积分消耗规则
- */
-const CREDIT_COSTS = {
-  text: 1,
-  url: 3,
-  file: 3,
-  video: 5,
-} as const;
 
 /**
  * 字符限制规则
@@ -75,7 +70,7 @@ export const generateFlashcardsAction = protectedAction
     }
 
     // 计算积分消耗
-    const creditsCost = CREDIT_COSTS[sourceType];
+    const creditsCost = CREDIT_COSTS_BY_SOURCE[sourceType];
 
     // 检查用户积分余额
     const balance = await db.query.creditsBalance.findFirst({
@@ -160,8 +155,8 @@ const analyzeDocumentSchema = z.object({
 /**
  * 分析文档生成大纲（Phase A）
  *
- * 此阶段免费，不扣除积分
- * 流程：创建任务 → 触发 Inngest 分析 → 返回 taskId
+ * 此阶段扣除索引费（按文档 Input Tokens 计算）
+ * 流程：创建任务 → 触发 Inngest 分析 → 解析后扣费 → 返回 taskId
  * 用户通过轮询获取大纲后选择章节
  */
 export const analyzeDocumentAction = protectedAction
@@ -170,7 +165,18 @@ export const analyzeDocumentAction = protectedAction
     const { sourceUrl, sourceFilename, fileKey } = parsedInput;
     const userId = ctx.user.id;
 
-    // 创建任务记录（Phase A 免费，creditsCost = 0）
+    // 预检：确保用户至少有最低积分（实际费用在 Inngest 解析后计算）
+    const balance = await db.query.creditsBalance.findFirst({
+      where: eq(creditsBalance.userId, userId),
+    });
+
+    if (!balance || balance.balance < MIN_CREDITS_COST) {
+      throw new Error(
+        `Insufficient credits. Minimum required: ${MIN_CREDITS_COST}, Available: ${balance?.balance ?? 0}`
+      );
+    }
+
+    // 创建任务记录（实际 creditsCost 在 Inngest 解析后更新）
     const taskId = nanoid();
     await db.insert(generationTask).values({
       id: taskId,
@@ -179,7 +185,7 @@ export const analyzeDocumentAction = protectedAction
       sourceType: "file",
       sourceUrl,
       sourceFilename,
-      creditsCost: 0, // 分析阶段免费
+      creditsCost: 0, // 解析后由 Inngest 更新
     });
 
     // 触发 Inngest 分析任务
@@ -215,18 +221,9 @@ const generateFromOutlineSchema = z.object({
 });
 
 /**
- * 计算选定章节的积分消耗
- *
- * 规则：每 10k tokens 消耗 1 积分，最少 1 积分
- */
-function calculateCreditsCost(selectedTokens: number): number {
-  return Math.max(1, Math.ceil(selectedTokens / 10000));
-}
-
-/**
  * 根据大纲选择生成闪卡（Phase B）
  *
- * 流程：验证任务状态 → 计算积分 → 检查余额 → 触发生成
+ * 流程：验证任务状态 → 计算生成费 → 检查余额 → 触发生成
  */
 export const generateFromOutlineAction = protectedAction
   .schema(generateFromOutlineSchema)
@@ -265,8 +262,8 @@ export const generateFromOutlineAction = protectedAction
       .filter((ch) => selectedChapters.includes(ch.index))
       .reduce((sum, ch) => sum + ch.estimatedTokens, 0);
 
-    // 计算积分消耗
-    const creditsCost = calculateCreditsCost(selectedTokens);
+    // 计算生成费（Phase B: 按选中章节 Input Tokens 计算）
+    const creditsCost = calculateCreationCost(selectedTokens);
 
     // 检查用户积分余额
     const balance = await db.query.creditsBalance.findFirst({

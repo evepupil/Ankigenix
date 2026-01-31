@@ -8,6 +8,7 @@ import {
   deck,
   generationTask,
 } from "@/db/schema";
+import { calculateIndexingCost } from "@/config/pricing";
 import type { DocumentOutline } from "@/lib/ai/outline";
 import {
   extractSelectedChaptersText,
@@ -220,7 +221,7 @@ export const analyzeDocument = inngest.createFunction(
   },
   { event: "flashcard/analyze-document" },
   async ({ event, step }) => {
-    const { taskId, sourceFilename, fileKey } = event.data;
+    const { taskId, userId, sourceFilename, fileKey } = event.data;
 
     // Step 1: 更新任务状态为分析中
     await step.run("update-task-analyzing", async () => {
@@ -247,6 +248,51 @@ export const analyzeDocument = inngest.createFunction(
       return countTokens(documentText);
     });
 
+    // Step 3.5: 扣除索引费（按文档总 Input Tokens 计算）
+    const indexingCost = await step.run("deduct-indexing-credits", async () => {
+      const cost = calculateIndexingCost(totalTokens);
+
+      const balance = await db.query.creditsBalance.findFirst({
+        where: eq(creditsBalance.userId, userId),
+      });
+
+      if (!balance || balance.balance < cost) {
+        throw new Error(
+          `Insufficient credits for indexing. Required: ${cost}, Available: ${balance?.balance ?? 0}`
+        );
+      }
+
+      // 扣除积分
+      await db
+        .update(creditsBalance)
+        .set({
+          balance: balance.balance - cost,
+          totalSpent: balance.totalSpent + cost,
+          updatedAt: new Date(),
+        })
+        .where(eq(creditsBalance.userId, userId));
+
+      // 记录交易
+      await db.insert(creditsTransaction).values({
+        id: nanoid(),
+        userId,
+        type: "consumption",
+        amount: cost,
+        debitAccount: "user_balance",
+        creditAccount: "document_indexing",
+        description: `Document indexing: ${sourceFilename} (${totalTokens} tokens)`,
+        metadata: { taskId, sourceFilename, totalTokens },
+      });
+
+      // 更新任务的索引费
+      await db
+        .update(generationTask)
+        .set({ creditsCost: cost })
+        .where(eq(generationTask.id, taskId));
+
+      return cost;
+    });
+
     // Step 4: 生成文档大纲
     const outline = await step.run("generate-outline", async () => {
       return await generateOutline(documentText);
@@ -268,6 +314,7 @@ export const analyzeDocument = inngest.createFunction(
     return {
       taskId,
       totalTokens,
+      indexingCost,
       chapterCount: outline.chapters.length,
     };
   }
