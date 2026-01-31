@@ -177,6 +177,11 @@ export const dashboardNav: NavGroup[] = [
     title: "Flashcards",
     items: [
       {
+        title: "Dashboard",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+      },
+      {
         title: "Generate",
         href: "/dashboard/generate",
         icon: Sparkles,
